@@ -85,10 +85,11 @@ Transparente Akzentflächen: `rgb(var(--color-accent-rgb) / 0.16)`.
 
 ## Startseite: Foto + helles Chatfenster
 
-- **Hintergrund:** eigenes Foto (Kyoto 2024) vollflächig hinter Hero und Header
-  (`components/sections/Hero.module.css`), oben leicht abgedunkelt, unten weicher Übergang in
-  `--color-bg`. Dateien: `web/public/images/hero/kyoto-1280|2560.webp`, erzeugt mit
-  `npm run photos` (Liste `HERO_IMAGES` in `web/scripts/photos.mjs`), per `links()` vorgeladen.
+- **Hintergrund:** eigenes, stilisiertes Japan-Motiv (Kyoto, Raster-Look) vollflächig hinter Hero
+  und Header (`components/sections/Hero.module.css`), oben leicht abgedunkelt, unten weicher
+  Übergang in `--color-bg`. Quelle `assets/photos/backgrounds/japan.jpg` → `npm run photos` →
+  `web/public/images/hero/japan-1280|2560|3840.webp` (Liste `HERO_IMAGES` in
+  `web/scripts/photos.mjs`), per `links()` in `routes/home.tsx` vorgeladen.
 - **Chatfenster** im hellen Glas-Look: `--glass-light` (Weiß 78 %, Blur 28px), Text `--ink`
   (17 : 1), Sekundärtext `--ink-muted`/`--ink-subtle`, Akzent Petrol `--color-accent`,
   Senden-Button schwarz. Ohne `backdrop-filter`-Unterstützung fast deckend (`--glass-light-strong`).

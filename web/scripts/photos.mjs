@@ -60,17 +60,17 @@ for (const album of (await readdir(albumsDir, { withFileTypes: true })).filter((
 
 /** Hintergrundbilder (Startseite) – Quelle relativ zu assets/photos */
 const HERO_IMAGES = [
-  { source: "japan-2024/originals/01-kyoto-tempel.jpg", name: "kyoto", widths: [1280, 2560] },
+  { source: "backgrounds/japan.jpg", name: "japan", widths: [1280, 2560, 3840], quality: 82 },
 ];
 const heroDir = join(outputDir, "hero");
 await rm(heroDir, { recursive: true, force: true });
 await mkdir(heroDir, { recursive: true });
-for (const { source, name, widths } of HERO_IMAGES) {
+for (const { source, name, widths, quality } of HERO_IMAGES) {
   for (const width of widths) {
     await sharp(join(albumsDir, source))
       .rotate()
       .resize({ width, withoutEnlargement: true })
-      .webp({ quality: 76 })
+      .webp({ quality })
       .toFile(join(heroDir, `${name}-${width}.webp`));
   }
   console.log(`✓ hero/${name} (${widths.join(", ")})`);

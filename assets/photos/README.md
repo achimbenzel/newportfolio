@@ -5,8 +5,9 @@ ausgeliefert – die Website nutzt nur die aufbereiteten Versionen aus `web/publ
 
 ```
 assets/photos/
-  <album>/                  z. B. japan-2024
+  <album>/                  z. B. japan-2024 (Galerie im Chat)
     originals/              Originale, Dateiname = Reihenfolge + Motiv (01-kyoto-tempel.jpg)
+  backgrounds/              Hintergrundbilder (z. B. japan.jpg für die Startseite)
 ```
 
 Aufbereiten: `npm run photos` (verkleinert, WebP, richtig gedreht, **ohne Metadaten/GPS**).

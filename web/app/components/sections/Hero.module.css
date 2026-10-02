@@ -1,15 +1,21 @@
-/* Vollflächiges Hintergrundfoto (eigenes Foto, Kyoto 2024 – erzeugt mit `npm run photos`) */
+/* Vollflächiges Hintergrundbild (eigenes Japan-Motiv, stilisiert – erzeugt mit `npm run photos`) */
 .hero {
   position: relative;
   isolation: isolate;
   display: flex;
   min-height: 100svh;
-  background: var(--color-bg) url("/images/hero/kyoto-2560.webp") center 40% / cover no-repeat;
+  background: var(--color-bg) url("/images/hero/japan-2560.webp") center 35% / cover no-repeat;
 }
 
 @media (max-width: 900px) {
   .hero {
-    background-image: url("/images/hero/kyoto-1280.webp");
+    background-image: url("/images/hero/japan-1280.webp");
+  }
+}
+
+@media (min-width: 2000px) {
+  .hero {
+    background-image: url("/images/hero/japan-3840.webp");
   }
 }
 
