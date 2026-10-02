@@ -10,7 +10,7 @@ Portfolio-Website von Achim Benzel. Monorepo: `web/` (React Router 8 + Vite, vor
 - Styling: CSS Modules + Tokens aus `web/app/styles/tokens.css`, keine Hex-Werte in Komponenten, nur Dark Mode.
 - Jeder sichtbare Text auf DE **und** EN (`web/app/i18n/de.ts`/`en.ts` bzw. zweisprachige Sanity-Felder).
 - Jede Seite: `meta` mit `pageMeta()`, genau eine `<h1>`, Inhalte im vorgerenderten HTML.
-- Barrierefreiheit (WCAG 2.2 AA) ist Pflicht: Tastatur, Fokus, Kontrast, Alt-Texte, reduzierte Bewegung (`docs/11-barrierefreiheit.md`).
+- Barrierefreiheit ist ein freiwilliges Ziel (Orientierung WCAG 2.2 AA): Tastatur, Fokus, Kontrast, Alt-Texte, reduzierte Bewegung möglichst beachten (`docs/11-barrierefreiheit.md`).
 - Datenschutz: keine Requests an Drittanbieter ohne Consent (Fonts/Bilder lokal, Embeds nur via `<ConsentGate>`).
 - Keine fremden Code-Schnipsel/Assets ohne passende Lizenz; neue npm-Pakete in `docs/07-lizenzen.md` eintragen.
 - Code Englisch, Kommentare & Doku Deutsch.

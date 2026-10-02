@@ -82,8 +82,9 @@ Code (Variablen, Typen) ist **Englisch**, Kommentare und Doku sind **Deutsch**.
 
 ## H. Barrierefreiheit
 
-**Die Website ist barrierefrei – Ziel WCAG 2.2 AA.** Eine Änderung, die Barrieren erzeugt, ist nicht
-fertig. Details, Checklisten und Tests: [11-barrierefreiheit.md](11-barrierefreiheit.md).
+**Freiwilliges Ziel** (keine Verpflichtung): möglichst barrierefrei, Orientierung WCAG 2.2 AA.
+Die Punkte unten sind Empfehlungen – neue Barrieren sollten aber nicht ohne Grund entstehen.
+Details, Checklisten und Tests: [11-barrierefreiheit.md](11-barrierefreiheit.md).
 
 1. Alles per Tastatur bedienbar, sichtbarer Fokus (`:focus-visible`) nicht entfernen.
 2. Buttons sind `<button>`, Links sind `<a>`/`<Link>` – nie `div` mit `onClick`.

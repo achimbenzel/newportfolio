@@ -44,16 +44,16 @@ Ohne Sanity-Zugangsdaten läuft die Website mit Platzhalter-Inhalten aus `web/ap
 
 ## Dokumentation
 
-| Dokument                                           | Inhalt                                               |
-| -------------------------------------------------- | ---------------------------------------------------- |
-| [01 Architektur](docs/01-architektur.md)           | Wie die Seite aufgebaut ist und warum                |
-| [02 Regeln](docs/02-regeln.md)                     | **Verbindliche Regeln** für Code, Inhalte & Struktur |
-| [03 Design-System](docs/03-design-system.md)       | Farben, Schriften, Abstände, Animationen             |
-| [04 Inhalte & Sanity](docs/04-inhalte-sanity.md)   | Content-Modell, Studio, Veröffentlichen              |
-| [05 SEO & KI](docs/05-seo-ki.md)                   | Prerendering, Meta-Tags, Sitemap, llms.txt           |
-| [06 Datenschutz](docs/06-datenschutz.md)           | DSGVO, Cookie-Banner, lokale Fonts, Checkliste       |
-| [07 Lizenzen](docs/07-lizenzen.md)                 | Herkunft von Code, Schriften & Assets                |
-| [08 Roadmap](docs/08-roadmap.md)                   | Was noch offen ist                                   |
-| [09 Ask-Widget](docs/09-ask-widget.md)             | „Frag Achim“ – Funktionsweise & Pflege               |
-| [10 Anleitungen](docs/10-anleitungen.md)           | Schritt für Schritt: neue Seite, Komponente, …       |
-| [11 Barrierefreiheit](docs/11-barrierefreiheit.md) | Ziel WCAG 2.2 AA – Regeln, Checklisten, Tests        |
+| Dokument                                           | Inhalt                                                |
+| -------------------------------------------------- | ----------------------------------------------------- |
+| [01 Architektur](docs/01-architektur.md)           | Wie die Seite aufgebaut ist und warum                 |
+| [02 Regeln](docs/02-regeln.md)                     | **Verbindliche Regeln** für Code, Inhalte & Struktur  |
+| [03 Design-System](docs/03-design-system.md)       | Farben, Schriften, Abstände, Animationen              |
+| [04 Inhalte & Sanity](docs/04-inhalte-sanity.md)   | Content-Modell, Studio, Veröffentlichen               |
+| [05 SEO & KI](docs/05-seo-ki.md)                   | Prerendering, Meta-Tags, Sitemap, llms.txt            |
+| [06 Datenschutz](docs/06-datenschutz.md)           | DSGVO, Cookie-Banner, lokale Fonts, Checkliste        |
+| [07 Lizenzen](docs/07-lizenzen.md)                 | Herkunft von Code, Schriften & Assets                 |
+| [08 Roadmap](docs/08-roadmap.md)                   | Was noch offen ist                                    |
+| [09 Ask-Widget](docs/09-ask-widget.md)             | „Frag Achim“ – Funktionsweise & Pflege                |
+| [10 Anleitungen](docs/10-anleitungen.md)           | Schritt für Schritt: neue Seite, Komponente, …        |
+| [11 Barrierefreiheit](docs/11-barrierefreiheit.md) | Freiwilliges Ziel (WCAG 2.2 AA) – Empfehlungen, Tests |

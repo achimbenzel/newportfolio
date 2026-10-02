@@ -1,12 +1,10 @@
 # 11 – Barrierefreiheit
 
-**Die Website soll barrierefrei sein.** Ziel ist die Konformitätsstufe **WCAG 2.2 AA** – für jede
-Seite, jede Komponente und jeden Inhalt aus Sanity. Barrierefreiheit ist kein späterer Feinschliff,
-sondern gehört zur Definition von „fertig“.
+**Barrierefreiheit ist für diese Website freiwillig** – es gibt keine Verpflichtung. Sie ist trotzdem
+ein bewusst gesetztes Ziel: Orientierung ist die Stufe **WCAG 2.2 AA**, soweit das mit vertretbarem
+Aufwand möglich ist. Nebeneffekt: bessere SEO, bessere mobile Bedienung, bessere Lesbarkeit für alle.
 
-> Rechtlicher Hinweis (keine Rechtsberatung): Das Barrierefreiheitsstärkungsgesetz (BFSG) sieht für
-> Kleinstunternehmen Ausnahmen vor. Unabhängig davon gilt für dieses Projekt WCAG 2.2 AA als Standard –
-> es verbessert außerdem SEO, mobile Bedienung und die Lesbarkeit für alle.
+Die Regeln und Checklisten unten sind daher **Empfehlungen**, keine Abnahmekriterien.
 
 ## Grundsätze
 
