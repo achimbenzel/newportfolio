@@ -1901,7 +1901,6 @@ export const topics: Topic[] = [
       "mp4",
       "mov",
       "gif",
-      "lottie",
       "lieferumfang",
       "deliverables",
       "file formats",
@@ -1909,19 +1908,19 @@ export const topics: Topic[] = [
       "what files",
     ],
     examples: {
-      de: ["In welchen Formaten bekomme ich die Dateien?", "Lieferst du auch Lottie-Dateien?"],
+      de: ["In welchen Formaten bekomme ich die Dateien?", "Welche Dateiformate lieferst du?"],
       en: ["Which file formats do I get?", "What are the deliverables?"],
     },
     followUps: ["source", "rights", "revisions"],
     de: {
       label: "Dateiformate",
       q: "Welche Dateiformate bekomme ich?",
-      a: "Du bekommst alle Formate, die du brauchst – z. B. SVG, PDF und PNG fürs Logo samt Styleguide als PDF oder MP4, MOV und GIF für Animationen. Lottie biete ich nicht an; offene Projektdateien gibt es nach Absprache.",
+      a: "Du bekommst alle Formate, die du brauchst – z. B. SVG, PDF und PNG fürs Logo samt Styleguide als PDF oder MP4, MOV und GIF für Animationen. Offene Projektdateien gibt es nach Absprache.",
     },
     en: {
       label: "file formats",
       q: "Which file formats do I get?",
-      a: "You get every format you need – e.g. SVG, PDF and PNG for a logo plus a style guide as PDF, or MP4, MOV and GIF for animations. I don't offer Lottie; open project files are available by arrangement.",
+      a: "You get every format you need – e.g. SVG, PDF and PNG for a logo plus a style guide as PDF, or MP4, MOV and GIF for animations. Open project files are available by arrangement.",
     },
   },
   {
@@ -1976,12 +1975,12 @@ export const topics: Topic[] = [
     de: {
       label: "Nutzungsrechte",
       q: "Welche Nutzungsrechte bekomme ich?",
-      a: "Du bekommst alle Nutzungsrechte, die du für dein Projekt brauchst. Das Urheberrecht bleibt bei mir – weitergehende Rechte, etwa exklusive Nutzungsrechte, vereinbaren wir bei Bedarf extra und gegen Aufpreis.",
+      a: "Du bekommst alle Nutzungsrechte, die du für dein Projekt brauchst. Das Urheberrecht bleibt bei mir – weitergehende Rechte, etwa exklusive Nutzungsrechte, vereinbaren wir bei Bedarf extra und gegen Aufpreis. Bei genaueren Fragen dazu wende dich am besten direkt an mich: [{email}](mailto:{email}).",
     },
     en: {
       label: "usage rights",
       q: "What usage rights do I get?",
-      a: "You get all the usage rights you need for your project. I keep the copyright – a full copyright transfer (buyout) or exclusive rights can be agreed separately for an extra fee.",
+      a: "You get all the usage rights you need for your project. I keep the copyright – a full copyright transfer (buyout) or exclusive rights can be agreed separately for an extra fee. For more specific questions, just get in touch with me directly: [{email}](mailto:{email}).",
     },
   },
   {

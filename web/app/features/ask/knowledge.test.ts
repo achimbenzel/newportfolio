@@ -212,6 +212,15 @@ describe("Frag Achim – Beispielfragen", () => {
 const variants = (text: Text) => (Array.isArray(text) ? text : [text]);
 
 describe("Frag Achim – Inhalte", () => {
+  it("Formate ohne Lottie, Nutzungsrechte mit Verweis auf direkte Nachfrage", () => {
+    for (const lang of ["de", "en"] as const) {
+      const formats = answerLocally("", { lang, topicId: "formats" }).text;
+      expect(formats.toLowerCase()).not.toContain("lottie");
+      const rights = answerLocally("", { lang, topicId: "rights" }).text;
+      expect(rights).toContain("(mailto:info@achimbenzel.com)");
+    }
+  });
+
   it("Projektdateien nur nach Absprache", () => {
     expect(answerLocally("Bekomme ich die Projektdateien?", { lang: "de" }).text).toContain(
       "nicht automatisch dabei",
