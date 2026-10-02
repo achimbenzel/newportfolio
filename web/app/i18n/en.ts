@@ -47,11 +47,6 @@ export const en: Dictionary = {
     suggestions: "Suggestions",
     thinking: "Achim is typing …",
   },
-  home: {
-    workEyebrow: "Selection",
-    workTitle: "Selected work",
-    workAll: "Discover all projects",
-  },
   work: {
     title: "Work",
     intro: "A selection of recent work across branding, graphic design, motion and 3D.",

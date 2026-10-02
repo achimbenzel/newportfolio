@@ -50,11 +50,6 @@ export const de = {
     suggestions: "Vorschläge",
     thinking: "Achim tippt …",
   },
-  home: {
-    workEyebrow: "Auswahl",
-    workTitle: "Ausgewählte Projekte",
-    workAll: "Alle Projekte entdecken",
-  },
   work: {
     title: "Projekte",
     intro: "Eine Auswahl aktueller Arbeiten aus Branding, Grafik, Motion und 3D.",

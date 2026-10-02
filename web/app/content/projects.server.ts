@@ -101,6 +101,7 @@ export async function getProjects(locale: Locale): Promise<ProjectSummary[]> {
   return Promise.all(raw.map(toSummary));
 }
 
+/** Projekte mit „Auf der Startseite zeigen“ – aktuell nicht eingebunden (Startseite zeigt vorerst nur den Chat). */
 export async function getFeaturedProjects(locale: Locale, limit = 3): Promise<ProjectSummary[]> {
   if (!isSanityConfigured) {
     return fallbackProjects

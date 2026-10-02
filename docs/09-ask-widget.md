@@ -58,6 +58,48 @@ Ein Thema in `knowledge.ts`:
 - Mehrwort-Stichwörter („wie lange“) zählen stärker als einzelne Wörter.
 - Nach Änderungen: ein paar typische Fragen auf DE und EN durchtesten.
 
+## Fragen & Antworten erweitern („trainieren“)
+
+Das Widget ist **keine trainierte KI**, sondern sucht Stichwörter. „Trainieren“ heißt hier:
+Stichwörter und Themen in `knowledge.ts` ergänzen. Was dort steht, wird beim nächsten Build live.
+
+### So bewertet die Suche eine Frage
+
+| Treffer                                                | Punkte |
+| ------------------------------------------------------ | ------ |
+| Mehrwort-Stichwort steckt in der Frage („wie lange“)   | 4      |
+| Wort stimmt genau überein („logo“)                     | 3      |
+| Wort beginnt mit dem Stichwort („logos“, ab 4 Zeichen) | 2      |
+| Tippfehler mit 1 Buchstaben Abweichung (ab 5 Zeichen)  | 2      |
+| Bonus für „Aspekt“-Themen (Dauer, Preis, Ablauf …)     | +3     |
+
+Das Thema mit den meisten Punkten gewinnt. Liegt ein zweites Thema knapp dahinter (≥ 70 %),
+wird dessen erster Satz mit „Außerdem: …“ angehängt. Kein Treffer → Hinweis auf die E-Mail.
+
+### Typische Aufgaben
+
+1. **Eine Frage wird nicht erkannt** → die Wörter, die Leute dafür benutzen, als `keywords`
+   beim passenden Thema ergänzen. Immer **DE und EN**, Umgangssprache und Synonyme
+   („kosten“, „preis“, „was nimmst du“, „budget“, „teuer“, „how much“).
+2. **Falsches Thema gewinnt** → beim richtigen Thema ein Mehrwort-Stichwort ergänzen
+   (zählt stärker) oder beim falschen Thema ein zu allgemeines Stichwort entfernen.
+3. **Neues Thema** → neuen Eintrag mit eindeutiger `id` anlegen (Aufbau siehe oben), Antwort
+   auf DE und EN schreiben, `followUps` setzen. Soll es als Startvorschlag erscheinen →
+   `id` in `defaultChips` eintragen. Fragt es nach einem Aspekt (Dauer, Preis …) → in `intentTopics`.
+4. **Antwort ändern** → nur `a` anpassen. Kurz halten (2–4 Sätze), lieber auf eine Seite verlinken.
+
+### Testen
+
+`npm run dev` → <http://localhost:5173/de/> und Fragen eintippen – auch mit Tippfehlern,
+auf Englisch und als ganze Sätze. Gute Testfragen notieren und nach jeder Änderung wiederholen.
+
+### Woher kommen neue Fragen?
+
+Ehrlich gesagt: aus Gesprächen mit Kunden, E-Mails und Feedback. Das Widget speichert
+bewusst **nichts** (Datenschutz). Eine Auswertung „welche Fragen wurden nicht erkannt?“ wäre
+technisch möglich, braucht aber einen eigenen Server-Endpoint, einen Hinweis in der
+Datenschutzerklärung und sollte keine Freitexte dauerhaft speichern.
+
 ## Optional: echte KI als Backend
 
 `askConfig.endpoint` in `config.ts` kann auf einen **eigenen** Endpoint zeigen (z. B. `/api/ask`),
