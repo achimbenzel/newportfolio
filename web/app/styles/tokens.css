@@ -31,6 +31,8 @@
   --color-accent-text: #2aa7bb; /* Akzent als TEXT auf Dunkel (6.6:1) */
   --color-accent-bright: #63b7ed; /* Highlights, Hover */
   --color-on-accent: #ffffff;
+  --color-neon: #22d3e6; /* Neon-Glow (Chatfenster) – gleicher Farbton wie der Akzent, nur leuchtend */
+  --color-neon-rgb: 34 211 230;
   --logo-mark: var(--color-accent);
 
   /* ── Schriften ───────────────────────────────────────────── */

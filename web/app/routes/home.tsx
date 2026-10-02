@@ -1,6 +1,5 @@
 import { ProjectGrid } from "~/components/project/ProjectGrid";
 import { Hero } from "~/components/sections/Hero";
-import { ServicesOverview } from "~/components/sections/ServicesOverview";
 import { ButtonLink } from "~/components/ui/Button";
 import { Section } from "~/components/ui/Section";
 import { getFeaturedProjects } from "~/content/projects.server";
@@ -25,7 +24,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const locale = useLocale();
   return (
     <>
-      <Hero scrollTarget="#work" />
+      <Hero />
       <Section
         id="work"
         eyebrow={t.home.workEyebrow}
@@ -34,7 +33,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       >
         <ProjectGrid projects={loaderData.projects} />
       </Section>
-      <ServicesOverview />
     </>
   );
 }

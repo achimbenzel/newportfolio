@@ -92,7 +92,6 @@ export function Header() {
 
   const pageLinks = [
     { to: paths.work(locale), label: t.nav.work },
-    { to: paths.shop(locale), label: t.nav.shop },
     { to: paths.about(locale), label: t.nav.about },
     { to: paths.contact(locale), label: t.nav.contact },
   ];

@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { Link } from "react-router";
+import { LogoMark3D } from "~/components/brand/LogoMark3D";
 import { Icon } from "~/components/ui/Icon";
 import { useLocale, useT } from "~/i18n";
 import { askConfig } from "./config";
@@ -17,8 +18,8 @@ import { chatStore, type ChatMessage } from "./store";
 import styles from "./AskWidget.module.css";
 
 /**
- * „Frag Achim“ – Chat-Widget im Hero.
- * Eingabe oben, Antworten klappen darunter weich auf, Vorschläge (Chips) darunter.
+ * „Frag Achim“ – Chatfenster im Hero (Look: großes Eingabefeld mit Neon-Glow).
+ * Verlauf erscheint im selben Fenster ÜBER dem Eingabefeld, Vorschläge darunter.
  * Antwortet auf Deutsch und Englisch (Sprache der Frage), komplett lokal.
  */
 export function AskWidget() {
@@ -36,27 +37,41 @@ export function AskWidget() {
   const chipsRef = useRef<HTMLDivElement>(null);
   const focusChipsNext = useRef(false);
 
+  const hasHistory = chat.messages.length > 0;
   const chipLang = chat.chips?.lang ?? locale;
   const chipIds = (chat.chips?.ids ?? defaultChips).filter((id) => getTopic(id)?.[chipLang].label);
+  const canSend = !chat.busy && question.trim().length > 0;
 
   // Neue Inhalte → Verlauf nach unten scrollen (nur DOM, kein State)
   useEffect(() => {
     const log = logRef.current;
     if (log) log.scrollTop = log.scrollHeight;
-  }, [chat.messages]);
+  }, [chat.messages, chat.open]);
 
-  // Nach Klick auf einen Chip den Fokus auf den ersten neuen Chip setzen (Tastaturbedienung)
+  // Nach Klick auf einen Vorschlag den Fokus auf den ersten neuen Vorschlag setzen (Tastatur)
   useEffect(() => {
     if (!focusChipsNext.current || chat.busy) return;
     focusChipsNext.current = false;
     chipsRef.current?.querySelector("button")?.focus({ preventScroll: true });
   }, [chat.busy, chat.chips]);
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (chat.busy || !question.trim()) return;
+  const send = () => {
+    if (!canSend) return;
     void chatStore.ask(question, { pageLocale: locale });
     setQuestion("");
+  };
+
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    send();
+  };
+
+  // Enter sendet, Shift+Enter = neue Zeile
+  const onInputKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      send();
+    }
   };
 
   const askTopic = (id: string) => {
@@ -78,64 +93,34 @@ export function AskWidget() {
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Escape-Taste schließt das Panel
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Escape-Taste schließt den Verlauf
     <div className={styles.widget} data-open={chat.open || undefined} onKeyDown={onKeyDown}>
-      <form className={styles.bar} onSubmit={submit} role="search" aria-label={t.ask.title}>
-        <label htmlFor={inputId} className="sr-only">
-          {t.ask.label}
-        </label>
-        <Icon name="sparkle" size={18} className={styles.barIcon} />
-        <input
-          id={inputId}
-          className={styles.input}
-          type="text"
-          value={question}
-          onChange={(event) => setQuestion(event.target.value)}
-          onFocus={() => chat.messages.length > 0 && chatStore.setOpen(true)}
-          placeholder={t.ask.placeholder}
-          maxLength={askConfig.maxQuestionLength}
-          autoComplete="off"
-          enterKeyHint="send"
-          aria-controls={logId}
-        />
+      {/* Aktionen über dem Fenster – nur sichtbar, wenn es einen Verlauf gibt */}
+      <div className={styles.toolbar} data-visible={hasHistory || undefined} inert={!hasHistory}>
         <button
-          type="submit"
-          className={styles.submit}
-          disabled={chat.busy || !question.trim()}
-          aria-label={t.ask.submit}
+          type="button"
+          className={styles.toolButton}
+          onClick={chatStore.reset}
+          disabled={chat.busy}
         >
-          <span>{t.ask.submit}</span>
-          <Icon name="arrowRight" size={15} />
+          {t.ask.reset}
         </button>
-      </form>
+        <button
+          type="button"
+          className={styles.toolButton}
+          onClick={() => chatStore.setOpen(!chat.open)}
+          aria-expanded={chat.open}
+          aria-controls={logId}
+        >
+          {chat.open ? t.ask.close : t.ask.show}
+          <Icon name="chevronDown" size={14} className={styles.toolChevron} />
+        </button>
+      </div>
 
-      <div className={styles.panel} inert={!chat.open}>
-        <div className={styles.panelInner}>
-          <section className={styles.card} aria-label={t.ask.title}>
-            <div className={styles.head}>
-              <span className={styles.headTitle}>
-                <span className={styles.liveDot} aria-hidden="true" />
-                {t.ask.title}
-              </span>
-              <div className={styles.headActions}>
-                <button
-                  type="button"
-                  className={styles.softButton}
-                  onClick={chatStore.reset}
-                  disabled={chat.busy}
-                >
-                  {t.ask.reset}
-                </button>
-                <button
-                  type="button"
-                  className={styles.softButton}
-                  onClick={() => chatStore.setOpen(false)}
-                  aria-label={t.ask.close}
-                >
-                  <Icon name="close" size={14} />
-                </button>
-              </div>
-            </div>
+      <form className={styles.card} onSubmit={onSubmit} aria-label={t.ask.title}>
+        {/* Verlauf – klappt weich auf */}
+        <div className={styles.panel} inert={!chat.open}>
+          <div className={styles.panelInner}>
             <div
               id={logId}
               ref={logRef}
@@ -149,9 +134,43 @@ export function AskWidget() {
               ))}
             </div>
             <p className={styles.disclaimer}>{t.ask.disclaimer}</p>
-          </section>
+          </div>
         </div>
-      </div>
+
+        <label htmlFor={inputId} className="sr-only">
+          {t.ask.label}
+        </label>
+        <textarea
+          id={inputId}
+          className={styles.input}
+          value={question}
+          onChange={(event) => setQuestion(event.target.value)}
+          onKeyDown={onInputKeyDown}
+          onFocus={() => hasHistory && chatStore.setOpen(true)}
+          placeholder={t.ask.placeholder}
+          maxLength={askConfig.maxQuestionLength}
+          rows={3}
+          autoComplete="off"
+          enterKeyHint="send"
+          aria-controls={logId}
+        />
+
+        <div className={styles.footer}>
+          <span className={styles.identity}>
+            <LogoMark3D depth={6} className={styles.identityMark} />
+            <span className={styles.identityName}>{t.ask.bot}</span>
+            <span className={styles.identityRole}>{t.ask.assistant}</span>
+          </span>
+          <button
+            type="submit"
+            className={styles.send}
+            disabled={!canSend}
+            aria-label={t.ask.submit}
+          >
+            <Icon name="arrowUp" size={18} strokeWidth={2.25} />
+          </button>
+        </div>
+      </form>
 
       <div ref={chipsRef} className={styles.chips} role="group" aria-label={t.ask.suggestions}>
         {chipIds.map((id) => (
@@ -176,9 +195,13 @@ function Message({ message }: { message: ChatMessage }) {
   const typing = message.visible < message.tokens.length;
   return (
     <div className={styles.message} data-from={message.from}>
-      <span className={styles.avatar} aria-hidden="true">
-        {isBot ? t.ask.botAvatar : t.ask.youAvatar}
-      </span>
+      {isBot ? (
+        <LogoMark3D depth={6} className={styles.avatarLogo} />
+      ) : (
+        <span className={styles.avatar} aria-hidden="true">
+          {t.ask.youAvatar}
+        </span>
+      )}
       <div>
         <p className={styles.who}>{isBot ? t.ask.bot : t.ask.you}</p>
         {message.pending ? (

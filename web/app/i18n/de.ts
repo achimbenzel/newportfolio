@@ -21,7 +21,6 @@ export const de = {
   nav: {
     services: "Leistungen",
     work: "Projekte",
-    shop: "Shop",
     about: "Über mich",
     contact: "Kontakt",
   },
@@ -34,10 +33,8 @@ export const de = {
     "music-visuals": { title: "Music & Visuals", teaser: "Cover, Visualizer & Künstleridentität." },
   },
   hero: {
-    eyebrow: "Freiberuflicher Designer",
-    title: "Von Print bis Bewegtbild: Branding, Grafik, Motion und 3D.",
-    lead: "Ein Ansprechpartner, von der ersten Skizze bis zum finalen Design.",
-    scroll: "Scrollen",
+    /** nur für Screenreader & Suchmaschinen (unsichtbare H1 der Startseite) */
+    title: "Achim Benzel – freiberuflicher Designer für Branding, Grafik, Motion und 3D",
   },
   ask: {
     title: "Frag Achim",
@@ -46,10 +43,11 @@ export const de = {
     submit: "Fragen",
     reset: "Neuer Chat",
     close: "Schließen",
+    show: "Verlauf anzeigen",
+    assistant: "Assistent",
     you: "Du",
     youAvatar: "D",
     bot: "Achim",
-    botAvatar: "a.",
     suggestions: "Vorschläge",
     thinking: "Achim tippt …",
     disclaimer: "Automatische Antworten auf Basis der Website-Inhalte.",
@@ -58,8 +56,6 @@ export const de = {
     workEyebrow: "Auswahl",
     workTitle: "Ausgewählte Projekte",
     workAll: "Alle Projekte entdecken",
-    servicesEyebrow: "Leistungen",
-    servicesTitle: "Was ich mache",
   },
   work: {
     title: "Projekte",

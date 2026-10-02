@@ -1,7 +1,15 @@
 # 09 – „Frag Achim“ (Ask-Widget)
 
-Das Chat-Widget im Hero der Startseite beantwortet Fragen zu Leistungen, Ablauf, Preisen, Werdegang
-und Kontakt – auf **Deutsch und Englisch**.
+Das Chat-Widget ist das einzige Element im Hero der Startseite. Es beantwortet Fragen zu Leistungen,
+Ablauf, Preisen, Werdegang und Kontakt – auf **Deutsch und Englisch**.
+
+## Aufbau der Oberfläche
+
+- Großes, dunkles Eingabefenster mit Neon-Glow (`--color-neon`), unten links „Achim · Assistent“
+  mit Bildmarke, unten rechts der runde Senden-Button. `Enter` sendet, `Shift+Enter` = neue Zeile.
+- Sobald gefragt wird, klappt der Verlauf **im selben Fenster über dem Eingabefeld** auf.
+  Achims Avatar ist die Bildmarke (`LogoMark3D`).
+- Darunter Vorschläge (passen sich nach jeder Antwort an), darüber „Neuer Chat“ / „Schließen“.
 
 ## Wie es funktioniert
 

@@ -19,7 +19,6 @@ export const en: Dictionary = {
   nav: {
     services: "Services",
     work: "Work",
-    shop: "Shop",
     about: "About",
     contact: "Contact",
   },
@@ -32,10 +31,7 @@ export const en: Dictionary = {
     "music-visuals": { title: "Music & Visuals", teaser: "Covers, visualizers & artist identity." },
   },
   hero: {
-    eyebrow: "Freelance designer",
-    title: "From print to motion: branding, graphic, motion and 3D.",
-    lead: "One point of contact, from the first sketch to the final design.",
-    scroll: "Scroll",
+    title: "Achim Benzel – freelance designer for branding, graphic design, motion and 3D",
   },
   ask: {
     title: "Ask Achim",
@@ -44,10 +40,11 @@ export const en: Dictionary = {
     submit: "Ask",
     reset: "New chat",
     close: "Close",
+    show: "Show chat",
+    assistant: "Assistant",
     you: "You",
     youAvatar: "Y",
     bot: "Achim",
-    botAvatar: "a.",
     suggestions: "Suggestions",
     thinking: "Achim is typing …",
     disclaimer: "Automatic answers based on the content of this website.",
@@ -56,8 +53,6 @@ export const en: Dictionary = {
     workEyebrow: "Selection",
     workTitle: "Selected work",
     workAll: "Discover all projects",
-    servicesEyebrow: "Services",
-    servicesTitle: "What I do",
   },
   work: {
     title: "Work",

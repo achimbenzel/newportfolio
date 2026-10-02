@@ -4,7 +4,7 @@ Stand: Grundstruktur + optischer Prototyp. Die folgenden Punkte sind bewusst noc
 
 ## Als Nächstes (laut Absprache)
 
-- [ ] **Inhalte**: echte Texte für Startseite, Leistungen, Über mich, Shop
+- [ ] **Inhalte**: echte Texte für Leistungen, Über mich, Kontakt
 - [ ] **Projekte anlegen**: Projekt-Schema in Sanity finalisieren (`studio/schemaTypes/documents/project.ts`),
       alte Projekte (Gute Stube, Joeys Picknick, Logos/LumaKeys …) übertragen
 - [ ] **Umgebungsvariablen / Deployment**: Sanity-Projekt anlegen, `.env`-Dateien, Server & Domain,
@@ -22,8 +22,6 @@ Stand: Grundstruktur + optischer Prototyp. Die folgenden Punkte sind bewusst noc
 - [ ] App-Icons als PNG (180 px Apple-Touch, 192/512 px) + `site.webmanifest`
 - [ ] Projekttexte als Rich Text (Portable Text) statt Plain Text, falls Formatierung gebraucht wird
 - [ ] Projektübersicht: Filter nach Kategorie (wie alte Seite)
-- [ ] Hero: echtes 3D-Logo (eigenes `3dlogo.glb` aus dem alten Repo) – nur wenn Performance passt,
-      sonst beim CSS/SVG-Pseudo-3D bleiben
 - [ ] Seitenübergänge (View Transitions API) prüfen
 - [ ] `Content-Security-Policy` im nginx (Vorschlag in [06-datenschutz.md](06-datenschutz.md))
 - [ ] Sanity TypeGen nutzen (`npm run typegen -w studio`) für typsichere GROQ-Ergebnisse
@@ -33,6 +31,6 @@ Stand: Grundstruktur + optischer Prototyp. Die folgenden Punkte sind bewusst noc
 
 - [ ] Impressum & Datenschutzerklärung (Platzhalter ersetzen!)
 - [ ] Checkliste in [06-datenschutz.md](06-datenschutz.md) abarbeiten
-- [ ] Alte URLs weiterleiten: `/de/services` → `/de/branding`?, `/de/my-fonts…` → `/de/shop`? (nginx `return 301`)
+- [ ] Alte URLs weiterleiten: `/de/services` → `/de/branding`?, `/de/my-fonts…` → ? (nginx `return 301`)
 - [ ] Google Search Console: neue Sitemap einreichen
 - [ ] Lighthouse/PageSpeed prüfen (Ziel: ≥ 95 in allen Kategorien)

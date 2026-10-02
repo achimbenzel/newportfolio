@@ -52,9 +52,6 @@ export function Footer() {
                   <Link to={paths.work(locale)}>{t.nav.work}</Link>
                 </li>
                 <li>
-                  <Link to={paths.shop(locale)}>{t.nav.shop}</Link>
-                </li>
-                <li>
                   <Link to={paths.about(locale)}>{t.nav.about}</Link>
                 </li>
                 <li>

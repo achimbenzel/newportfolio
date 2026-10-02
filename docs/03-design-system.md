@@ -5,19 +5,20 @@ CSS der alten Website (Farben, Schriften, Floating-Nav), aufgeräumt und auf **n
 
 ## Farben
 
-| Token                    | Wert      | Verwendung                              | Kontrast auf `--color-bg` |
-| ------------------------ | --------- | --------------------------------------- | ------------------------- |
-| `--color-bg`             | `#111114` | Seitenhintergrund                       | –                         |
-| `--color-bg-sunken`      | `#0c0c0e` | Footer, tiefe Flächen                   | –                         |
-| `--color-surface`        | `#18181c` | Karten, Panels, offene Menüs            | –                         |
-| `--color-surface-raised` | `#202024` | Hover, Inputs, Avatare                  | –                         |
-| `--color-text`           | `#e8eaf0` | Haupttext                               | 15.7 : 1                  |
-| `--color-text-muted`     | `#8a8ea0` | Sekundärtext                            | 5.8 : 1                   |
-| `--color-text-subtle`    | `#7d8193` | Meta (Jahreszahlen, Labels)             | 4.9 : 1                   |
-| `--color-accent`         | `#007588` | Markenfarbe Petrol: Flächen, Buttons    | Weiß darauf: 5.4 : 1      |
-| `--color-accent-text`    | `#2aa7bb` | Akzent **als Text** (Links, Überzeilen) | 6.6 : 1                   |
-| `--color-accent-bright`  | `#63b7ed` | Highlights                              | 8.6 : 1                   |
-| `--color-wordmark`       | `#e8e3dc` | Logo-Wortmarke (warmes Weiß)            | –                         |
+| Token                    | Wert      | Verwendung                                | Kontrast auf `--color-bg` |
+| ------------------------ | --------- | ----------------------------------------- | ------------------------- |
+| `--color-bg`             | `#111114` | Seitenhintergrund                         | –                         |
+| `--color-bg-sunken`      | `#0c0c0e` | Footer, tiefe Flächen                     | –                         |
+| `--color-surface`        | `#18181c` | Karten, Panels, offene Menüs              | –                         |
+| `--color-surface-raised` | `#202024` | Hover, Inputs, Avatare                    | –                         |
+| `--color-text`           | `#e8eaf0` | Haupttext                                 | 15.7 : 1                  |
+| `--color-text-muted`     | `#8a8ea0` | Sekundärtext                              | 5.8 : 1                   |
+| `--color-text-subtle`    | `#7d8193` | Meta (Jahreszahlen, Labels)               | 4.9 : 1                   |
+| `--color-accent`         | `#007588` | Markenfarbe Petrol: Flächen, Buttons      | Weiß darauf: 5.4 : 1      |
+| `--color-accent-text`    | `#2aa7bb` | Akzent **als Text** (Links, Überzeilen)   | 6.6 : 1                   |
+| `--color-accent-bright`  | `#63b7ed` | Highlights                                | 8.6 : 1                   |
+| `--color-wordmark`       | `#e8e3dc` | Logo-Wortmarke (warmes Weiß)              | –                         |
+| `--color-neon`           | `#22d3e6` | Neon-Glow des Chatfensters (nur Leuchten) | –                         |
 
 > `#007588` ist als **Textfarbe** auf Dunkel zu schwach (3.5 : 1) – dafür immer `--color-accent-text`.
 
@@ -68,18 +69,19 @@ Transparente Akzentflächen: `rgb(var(--color-accent-rgb) / 0.16)`.
 
 ## Komponenten-Übersicht
 
-| Komponente       | Datei                                  | Hinweis                                                         |
-| ---------------- | -------------------------------------- | --------------------------------------------------------------- |
-| Header („Insel“) | `components/layout/Header.tsx`         | schwebend, Desktop: „Leistungen“ klappt auf; Mobil: Vollmenü    |
-| Sprachwechsel    | `components/layout/LanguageSwitch.tsx` | DE/EN-Pille mit gleitendem Indikator                            |
-| Footer           | `components/layout/Footer.tsx`         | CTA, Navigation, Rechtliches, Cookie-Einstellungen              |
-| Button           | `components/ui/Button.tsx`             | `ButtonLink` (intern), `ButtonAnchor` (extern/mailto), `Button` |
-| Section          | `components/ui/Section.tsx`            | Überzeile + H2 + Inhalt (+ optional Footer-Aktion)              |
-| PageHeader       | `components/sections/PageHeader.tsx`   | H1 jeder Unterseite                                             |
-| Hero             | `components/sections/Hero.tsx`         | Startseite: Headline, Ask-Widget, 3D-Bildmarke                  |
-| ProjectCard/Grid | `components/project/*`                 | 4:3-Karten, 3/2/1 Spalten                                       |
-| Ask-Widget       | `features/ask/AskWidget.tsx`           | siehe [09-ask-widget.md](09-ask-widget.md)                      |
-| Cookie-Banner    | `features/consent/CookieBanner.tsx`    | siehe [06-datenschutz.md](06-datenschutz.md)                    |
+| Komponente       | Datei                                  | Hinweis                                                                  |
+| ---------------- | -------------------------------------- | ------------------------------------------------------------------------ |
+| Header („Insel“) | `components/layout/Header.tsx`         | schwebend, Desktop: „Leistungen“ klappt auf; Mobil: Vollmenü             |
+| Sprachwechsel    | `components/layout/LanguageSwitch.tsx` | DE/EN-Pille mit gleitendem Indikator                                     |
+| Footer           | `components/layout/Footer.tsx`         | CTA, Navigation, Rechtliches, Cookie-Einstellungen                       |
+| Button           | `components/ui/Button.tsx`             | `ButtonLink` (intern), `ButtonAnchor` (extern/mailto), `Button`          |
+| Section          | `components/ui/Section.tsx`            | Überzeile + H2 + Inhalt (+ optional Footer-Aktion)                       |
+| PageHeader       | `components/sections/PageHeader.tsx`   | H1 jeder Unterseite                                                      |
+| Hero             | `components/sections/Hero.tsx`         | Startseite: nur das Chatfenster, einfarbiger Hintergrund, unsichtbare H1 |
+| ProjectCard/Grid | `components/project/*`                 | 4:3-Karten, 3/2/1 Spalten                                                |
+| Ask-Widget       | `features/ask/AskWidget.tsx`           | siehe [09-ask-widget.md](09-ask-widget.md)                               |
+| LogoMark3D       | `components/brand/LogoMark3D.tsx`      | Bildmarke mit Verlauf + Tiefe (Chat-Avatar)                              |
+| Cookie-Banner    | `features/consent/CookieBanner.tsx`    | siehe [06-datenschutz.md](06-datenschutz.md)                             |
 
 ## Header-Verhalten
 

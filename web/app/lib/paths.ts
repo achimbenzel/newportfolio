@@ -10,7 +10,6 @@ export const paths = {
   work: (l: Locale) => `/${l}/work`,
   project: (l: Locale, slug: string) => `/${l}/work/${slug}`,
   service: (l: Locale, slug: ServiceSlug) => `/${l}/${slug}`,
-  shop: (l: Locale) => `/${l}/shop`,
   about: (l: Locale) => `/${l}/about`,
   contact: (l: Locale) => `/${l}/contact`,
   imprint: (l: Locale) => `/${l}/imprint`,

@@ -9,6 +9,7 @@ const icons = {
   arrowLeft: <path d="M20 12H5m6-6-6 6 6 6" />,
   arrowUpRight: <path d="M7 17 17 7M8 7h9v9" />,
   arrowDown: <path d="M12 4v15m-6-6 6 6 6-6" />,
+  arrowUp: <path d="M12 20V5m-6 6 6-6 6 6" />,
   chevronDown: <path d="m6 9 6 6 6-6" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   mail: (

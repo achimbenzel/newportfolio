@@ -24,7 +24,6 @@ export default [
     route("work/:slug", "routes/project.tsx"),
     ...serviceSlugs.map((slug) => route(slug, "routes/service.tsx", { id: `service-${slug}` })),
     route("about", "routes/about.tsx"),
-    route("shop", "routes/shop.tsx"),
     route("contact", "routes/contact.tsx"),
     route("imprint", "routes/legal.tsx", { id: "imprint" }),
     route("privacy", "routes/legal.tsx", { id: "privacy" }),

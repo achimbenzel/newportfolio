@@ -22,7 +22,6 @@ export async function getSitePages(): Promise<SitePage[]> {
     ...projectSlugs.map((slug) => ({ path: `/work/${slug}`, indexable: true })),
     ...serviceSlugs.map((slug) => ({ path: `/${slug}`, indexable: true })),
     { path: "/about", indexable: true },
-    { path: "/shop", indexable: true },
     { path: "/contact", indexable: true },
     { path: "/imprint", indexable: false },
     { path: "/privacy", indexable: false },
