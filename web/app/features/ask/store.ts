@@ -102,7 +102,7 @@ export const chatStore = {
       .filter((m) => !m.pending)
       .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: textOf(m) }));
 
-    const lang = options.lang ?? detectLanguage(q);
+    const lang = options.lang ?? detectLanguage(q, options.pageLocale);
     const answer = await getAnswer(history, q, { lang, topicId: options.topicId });
     const tokens = tokenize(answer.text);
     const animate = !prefersReducedMotion();

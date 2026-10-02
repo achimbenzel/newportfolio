@@ -15,90 +15,107 @@ Ablauf, Preisen, Werdegang und Kontakt – auf **Deutsch und Englisch**.
 ## Wie es funktioniert
 
 ```
-Frage ──▶ engine.ts: Stichwortsuche über knowledge.ts ──▶ Antwort (+ Vorschläge)
-            • unscharfe Treffer (Tippfehler, Plural)
-            • Sprache der Frage wird erkannt (deutsche Frage auf /en/ → deutsche Antwort)
-            • „Aspekt“-Themen (Dauer, Preis …) schlagen Fachthemen (Branding …)
-            • nichts gefunden → Hinweis auf E-Mail
+Frage ──▶ aufbereiten ──▶ Themen bewerten ──▶ Antwort (+ Vorschläge)
+          1. normalisieren   „Wie läuft's?“ → „wie lauft s“ (klein, ä = a, ß = ss)
+          2. Synonyme        „honorar“, „kostet“, „how much“ … → „preis“
+          3. Wortstamm       „Korrekturschleifen“ → „korrekturschleif“, „dauert“ → „dauer“
 ```
 
-- Läuft **komplett im Browser**, es werden **keine Daten gesendet oder gespeichert**.
-- Der Verlauf bleibt bei Navigation innerhalb der Website erhalten (Arbeitsspeicher), nach dem
-  Neuladen ist er weg – dadurch kein Cookie/Storage, kein Consent nötig.
-- Links in Antworten: interne Links navigieren ohne Neuladen, Mail-Links öffnen das Mailprogramm.
+- **Sprache:** wird an typischen Wörtern erkannt (deutsche Frage auf `/en/` → deutsche Antwort);
+  ist es unklar (z. B. nur „Logo?“), gilt die Sprache der Seite.
+- **Smalltalk** („Hallo“, „Wie geht's?“, „Danke“, „Tschüss“) wird beantwortet – aber nur,
+  wenn sonst nichts gefragt wurde. „Hallo, was kostet ein Logo?“ → Antwort zum Preis.
+- **Aspekt-Fragen** (Dauer, Preis, Korrekturen, Ablauf …) gehen vor: „Wie lange dauert eine
+  Logo-Animation?“ beantwortet die Dauer, nicht „Motion Design“.
+- **Zwei Fragen in einer** („Wie lange dauert es und was kostet es?“) → zweite Antwort wird
+  mit „Außerdem: …“ angehängt.
+- Läuft **komplett im Browser**, es werden **keine Daten gesendet oder gespeichert**. Der Verlauf
+  bleibt bei Navigation erhalten (Arbeitsspeicher), nach dem Neuladen ist er weg.
 
 ## Dateien (`web/app/features/ask/`)
 
-| Datei           | Inhalt                                                            |
-| --------------- | ----------------------------------------------------------------- |
-| `knowledge.ts`  | **Wissensbasis**: Themen, Stichwörter, Antworten DE/EN, Begrüßung |
-| `engine.ts`     | Antwortlogik (reine Funktionen), Link-Parser                      |
-| `store.ts`      | Chat-Zustand + Tipp-Animation (im Arbeitsspeicher)                |
-| `config.ts`     | Einstellungen (Tippgeschwindigkeit, optionales Backend)           |
-| `AskWidget.tsx` | Oberfläche                                                        |
+| Datei               | Inhalt                                                                           |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `knowledge.ts`      | **Wissensbasis**: Themen, Antworten DE/EN, Synonyme, Sprach-Hinweiswörter        |
+| `knowledge.test.ts` | **Testfragen** – prüft mit `npm test`, ob jede Frage beim richtigen Thema landet |
+| `engine.ts`         | Antwortlogik (Aufbereitung, Bewertung, Sprache), Link-Parser                     |
+| `store.ts`          | Chat-Zustand + Tipp-Animation (im Arbeitsspeicher)                               |
+| `config.ts`         | Einstellungen (Tippgeschwindigkeit, optionales Backend)                          |
+| `AskWidget.tsx`     | Oberfläche                                                                       |
 
-## Inhalte pflegen
+## Inhalte pflegen („trainieren“)
 
-> Die aktuellen Inhalte stammen aus dem Widget-Entwurf und sind **vorläufig**.
+Das Widget ist **keine trainierte KI**. „Trainieren“ heißt: Themen, Stichwörter und Synonyme in
+`knowledge.ts` ergänzen – und mit Testfragen absichern. Was dort steht, wird beim nächsten Build live.
 
-Ein Thema in `knowledge.ts`:
+### Ein Thema
 
 ```ts
 {
-  id: "duration",
-  keywords: ["how long", "dauer", "wie lange", "wochen"],   // DE + EN, klein geschrieben
-  followUps: ["price", "process", "contact"],               // Vorschläge danach
-  de: { label: "Dauer", q: "Wie lange dauert ein Projekt?", a: "Eine Markenidentität dauert …" },
-  en: { label: "how long?", q: "How long does a project take?", a: "A brand identity usually …" },
+  id: "revisions",
+  keywords: ["korrektur", "wie viele änderungen", "how many changes"], // DE + EN
+  followUps: ["duration", "price", "process"],                          // Vorschläge danach
+  de: { label: "Korrekturschleifen", q: "Wie viele Korrekturschleifen …?", a: "Das hängt vom Projekt ab. …" },
+  en: { label: "revisions", q: "How many rounds of revisions …?", a: "That depends on the project. …" },
 }
 ```
 
 - `label` = Text des Vorschlag-Chips, `q` = Frage beim Klick, `a` = Antwort.
 - In Antworten: `{base}` → `/de` bzw. `/en`, `{email}` → Kontaktadresse, Links als `[Text](url)`.
-- Mehrwort-Stichwörter („wie lange“) zählen stärker als einzelne Wörter.
-- Nach Änderungen: ein paar typische Fragen auf DE und EN durchtesten.
+- `smallTalk: true` für Begrüßung & Co. (verliert immer gegen ein echtes Thema).
 
-## Fragen & Antworten erweitern („trainieren“)
+### Synonyme – damit andere Formulierungen automatisch klappen
 
-Das Widget ist **keine trainierte KI**, sondern sucht Stichwörter. „Trainieren“ heißt hier:
-Stichwörter und Themen in `knowledge.ts` ergänzen. Was dort steht, wird beim nächsten Build live.
+Statt jedes Wort bei jedem Thema einzutragen, gibt es **Synonym-Gruppen** (`synonyms` in
+`knowledge.ts`). Alle Wörter einer Gruppe gelten als gleich – in der Frage und in den Stichwörtern:
 
-### So bewertet die Suche eine Frage
+```ts
+["preis", "kosten", "kostet", "honorar", "budget", "teuer", "price", "cost", "fee", "how much", …]
+```
 
-| Treffer                                                | Punkte |
-| ------------------------------------------------------ | ------ |
-| Mehrwort-Stichwort steckt in der Frage („wie lange“)   | 4      |
-| Wort stimmt genau überein („logo“)                     | 3      |
-| Wort beginnt mit dem Stichwort („logos“, ab 4 Zeichen) | 2      |
-| Tippfehler mit 1 Buchstaben Abweichung (ab 5 Zeichen)  | 2      |
-| Bonus für „Aspekt“-Themen (Dauer, Preis, Ablauf …)     | +3     |
+Ein neues Wort in die Gruppe → es funktioniert sofort bei **allen** Themen, die „preis“ als
+Stichwort haben. Endungen (Plural, „dauert“/„dauern“), Groß-/Kleinschreibung und Umlaute
+(„uberarbeiten“ = „überarbeiten“) werden automatisch angeglichen, Tippfehler mit einem
+falschen Buchstaben ebenso.
 
-Das Thema mit den meisten Punkten gewinnt. Liegt ein zweites Thema knapp dahinter (≥ 70 %),
-wird dessen erster Satz mit „Außerdem: …“ angehängt. Kein Treffer → Hinweis auf die E-Mail.
+### So bewertet die Suche
+
+| Treffer                                                         | Punkte |
+| --------------------------------------------------------------- | ------ |
+| Mehrwort-Stichwort steckt in der Frage („wie viele änderungen“) | 4      |
+| Wort stimmt überein (nach Synonym & Wortstamm)                  | 3      |
+| Teil eines zusammengesetzten Worts („logo“ in „markenlogo“)     | 2      |
+| Tippfehler mit 1 Buchstaben Abweichung (ab 5 Zeichen)           | 2      |
+| Bonus für Aspekt-Themen (`intentTopics`)                        | +3     |
+
+Jedes Stichwort zählt pro Frage höchstens einmal.
 
 ### Typische Aufgaben
 
-1. **Eine Frage wird nicht erkannt** → die Wörter, die Leute dafür benutzen, als `keywords`
-   beim passenden Thema ergänzen. Immer **DE und EN**, Umgangssprache und Synonyme
-   („kosten“, „preis“, „was nimmst du“, „budget“, „teuer“, „how much“).
-2. **Falsches Thema gewinnt** → beim richtigen Thema ein Mehrwort-Stichwort ergänzen
+1. **Eine Formulierung wird nicht erkannt** → zuerst als Testfall in `knowledge.test.ts` eintragen.
+   Dann: Bedeutet das Wort dasselbe wie ein vorhandenes? → in die passende **Synonym-Gruppe**.
+   Sonst → als `keyword` beim Thema ergänzen. Immer **DE und EN** mitdenken.
+2. **Falsches Thema gewinnt** → beim richtigen Thema einen Mehrwort-Ausdruck ergänzen
    (zählt stärker) oder beim falschen Thema ein zu allgemeines Stichwort entfernen.
-3. **Neues Thema** → neuen Eintrag mit eindeutiger `id` anlegen (Aufbau siehe oben), Antwort
-   auf DE und EN schreiben, `followUps` setzen. Soll es als Startvorschlag erscheinen →
-   `id` in `defaultChips` eintragen. Fragt es nach einem Aspekt (Dauer, Preis …) → in `intentTopics`.
-4. **Antwort ändern** → nur `a` anpassen. Kurz halten (2–4 Sätze), lieber auf eine Seite verlinken.
+3. **Neues Thema** → Eintrag mit eindeutiger `id`, Antwort auf DE und EN, `followUps` setzen.
+   Startvorschlag? → `id` in `defaultChips`. Fragt es nach einem Aspekt (Dauer, Preis …)? → `intentTopics`.
+4. **Antwort ändern** → nur `a` anpassen. Kurz halten (1–4 Sätze), lieber auf eine Seite verlinken.
 
 ### Testen
 
-`npm run dev` → <http://localhost:5173/de/> und Fragen eintippen – auch mit Tippfehlern,
-auf Englisch und als ganze Sätze. Gute Testfragen notieren und nach jeder Änderung wiederholen.
+```bash
+npm test     # prüft alle Testfragen (DE + EN) und die Konsistenz der Wissensbasis
+npm run dev  # → http://localhost:5173/de/ und selbst ausprobieren
+```
+
+Die Tests prüfen außerdem automatisch: jedes Thema hat DE- und EN-Antworten, alle Vorschläge
+existieren und haben Beschriftungen, Synonym-Gruppen überschneiden sich nicht.
 
 ### Woher kommen neue Fragen?
 
-Ehrlich gesagt: aus Gesprächen mit Kunden, E-Mails und Feedback. Das Widget speichert
-bewusst **nichts** (Datenschutz). Eine Auswertung „welche Fragen wurden nicht erkannt?“ wäre
-technisch möglich, braucht aber einen eigenen Server-Endpoint, einen Hinweis in der
-Datenschutzerklärung und sollte keine Freitexte dauerhaft speichern.
+Aus Gesprächen mit Kunden, E-Mails und Feedback. Das Widget speichert bewusst **nichts**
+(Datenschutz). Eine Auswertung „welche Fragen wurden nicht erkannt?“ wäre technisch möglich,
+braucht aber einen eigenen Server-Endpoint und einen Hinweis in der Datenschutzerklärung.
 
 ## Optional: echte KI als Backend
 

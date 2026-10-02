@@ -7,15 +7,16 @@
     "build": "react-router build",
     "preview": "node scripts/preview.mjs",
     "typecheck": "react-router typegen && tsc",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@sanity/client": "^8.9.0",
     "@sanity/image-url": "^2.1.1",
+    "isbot": "^5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router": "^8.4.0",
-    "isbot": "^5"
+    "react-router": "^8.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -29,7 +30,8 @@
     "globals": "^17.13.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.0",
-    "vite": "^8.3.2"
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
   },
   "engines": {
     "node": ">=22.22.0"

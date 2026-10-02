@@ -89,7 +89,8 @@ Code (Variablen, Typen) ist **Englisch**, Kommentare und Doku sind **Deutsch**.
 
 ## I. Qualität & Git
 
-1. Vor jedem Commit: `npm run check` (Format, Lint, Typen, Build) muss grün sein.
-2. TypeScript ist `strict` – kein `any`, kein `// @ts-ignore` ohne Begründung.
-3. Commits klein und beschreibend (Was + Warum).
-4. `.env`-Dateien **niemals** committen – nur `.env.example` pflegen.
+1. Vor jedem Commit: `npm run check` (Format, Lint, Typen, Tests, Build) muss grün sein.
+2. Neue/geänderte Inhalte im Ask-Widget → passende Testfragen in `knowledge.test.ts` ergänzen.
+3. TypeScript ist `strict` – kein `any`, kein `// @ts-ignore` ohne Begründung.
+4. Commits klein und beschreibend (Was + Warum).
+5. `.env`-Dateien **niemals** committen – nur `.env.example` pflegen.

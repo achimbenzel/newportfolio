@@ -16,7 +16,8 @@ npm run dev          # Website lokal → http://localhost:5173/de/
 npm run studio       # Sanity Studio lokal → http://localhost:3333 (braucht studio/.env)
 npm run build        # statischen Build erzeugen → web/build/client
 npm run preview      # Build lokal ansehen (verhält sich wie der nginx-Server)
-npm run check        # Format, Lint, Typen, Build – vor jedem Commit
+npm test             # Testfragen des Ask-Widgets (DE + EN)
+npm run check        # Format, Lint, Typen, Tests, Build – vor jedem Commit
 ```
 
 Ohne Sanity-Zugangsdaten läuft die Website mit Platzhalter-Inhalten aus `web/app/content/fallback`.

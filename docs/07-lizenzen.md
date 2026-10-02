@@ -51,6 +51,7 @@ bei den Dateien bleiben – deshalb liegen sie im selben Ordner und werden mit a
 | `sanity`, `@sanity/vision`, `styled-components` (Studio) | MIT        |
 | `typescript`                                             | Apache-2.0 |
 | `eslint`, `typescript-eslint`, `prettier`, Plugins       | MIT        |
+| `vitest` (Tests)                                         | MIT        |
 
 Im gesamten Abhängigkeitsbaum stehen nur freizügige Lizenzen (MIT, ISC, BSD, Apache-2.0, BlueOak,
 CC0) sowie einige MPL-2.0-Werkzeuge (z. B. `lightningcss` im Build) – unverändert genutzt, das ist
