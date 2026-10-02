@@ -19,6 +19,7 @@ Ziel: Für jede Datei im Projekt ist klar, **woher sie kommt und unter welcher L
 | Logo (Bild- & Wortmarke)   | eigene SVGs aus der alten Website | Achim Benzel |
 | Favicon                    | aus der eigenen Bildmarke         | Achim Benzel |
 | Projekttexte (Platzhalter) | aus den eigenen `project.json`    | Achim Benzel |
+| Fotos (z. B. Japan 2024)   | eigene Fotos (`assets/photos/`)   | Achim Benzel |
 
 Software-Namen (z. B. „Adobe Illustrator“) werden nur als **Text** genannt – keine fremden Logos/Icons
 eingebunden. Wenn später Programm-Icons gezeigt werden sollen: nur offizielle, zur Nutzung
@@ -52,6 +53,7 @@ bei den Dateien bleiben – deshalb liegen sie im selben Ordner und werden mit a
 | `typescript`                                             | Apache-2.0 |
 | `eslint`, `typescript-eslint`, `prettier`, Plugins       | MIT        |
 | `vitest` (Tests)                                         | MIT        |
+| `sharp` (Bildaufbereitung `npm run photos`, nur lokal)   | Apache-2.0 |
 
 Im gesamten Abhängigkeitsbaum stehen nur freizügige Lizenzen (MIT, ISC, BSD, Apache-2.0, BlueOak,
 CC0) sowie einige MPL-2.0-Werkzeuge (z. B. `lightningcss` im Build) – unverändert genutzt, das ist

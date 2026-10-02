@@ -46,12 +46,32 @@ export type AskProject = {
   year: number;
   /** zusätzliche Suchbegriffe aus Sanity (Feld „Stichwörter für Frag Achim“) */
   keywords: string[];
-} & Record<"de" | "en", { title: string; category: string; industry?: string; summary: string }>;
+} & Record<
+  "de" | "en",
+  {
+    title: string;
+    category: string;
+    industry?: string;
+    /** Kurzantwort (erste zwei Sätze) */
+    summary: string;
+    /** längerer Text für die Suche im Chat */
+    text: string;
+  }
+>;
 
 /** Leistungswissen für den Chat – Einleitung + Ablauf-Schritte der Leistungsseiten. */
 export type AskService = {
   slug: ServiceSlug;
-} & Record<"de" | "en", { title: string; intro: string; steps: string[] }>;
+} & Record<
+  "de" | "en",
+  {
+    title: string;
+    intro: string;
+    steps: string[];
+    /** Texte der Ablauf-Schritte („Titel: Text“) für die Suche im Chat – ohne Platzhalter */
+    details: string[];
+  }
+>;
 
 /** Alles, was der Chat aus dem Content-Layer bekommt (wächst mit der Website mit). */
 export type AskContent = { projects: AskProject[]; services: AskService[] };

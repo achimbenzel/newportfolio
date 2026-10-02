@@ -72,12 +72,27 @@ Zweck, Rechtsgrundlage – meist Art. 6 Abs. 1 lit. b bzw. f DSGVO –, Übermit
 Drittlandtransfer, Speicherdauer, Link zu deren Datenschutzhinweisen). Der Chat weist bei der
 Frage nach Datenschutz darauf hin (Thema `privacy`). Rechtliche Formulierung: Generator oder Anwalt.
 
+## Chat: unbeantwortete Fragen (optional)
+
+Standardmäßig **aus**. Eingeschaltet (`logEndpoint` in `web/app/features/ask/config.ts`) schickt
+der Chat Fragen, die er nicht beantworten konnte, an den **eigenen** Server (`/api/ask-log`,
+Dienst `deploy/ask-log`). Keine Dritten, keine Cookies.
+
+- Gesendet: Frage (E-Mail-Adressen, Telefonnummern, Links vorher unkenntlich), Sprache, Art der
+  Antwort. Gespeichert: zusätzlich nur das Datum – **keine IP-Adresse** (nginx gibt sie nicht weiter
+  und protokolliert diesen Pfad nicht).
+- Trotzdem können Besucher Persönliches in eine Frage tippen → **vor dem Einschalten** in die
+  Datenschutzerklärung: Zweck (Verbesserung des Chats), Rechtsgrundlage (berechtigtes Interesse,
+  Art. 6 Abs. 1 lit. f DSGVO), Speicherdauer (z. B. 3 Monate, dann Datei leeren), Hinweis, dass
+  keine personenbezogenen Daten eingegeben werden sollen.
+- Optional ein kurzer Hinweis im Chat-Fenster („Unbeantwortete Fragen werden anonym ausgewertet“).
+
 ## Checkliste vor dem Livegang
 
 - [ ] **Impressum** (§ 5 DDG) unter `/de/imprint` und `/en/imprint`
 - [ ] **Datenschutzerklärung** unter `/de/privacy` und `/en/privacy` (Hosting, Server-Logs,
       Kontaktformular, Consent, Vimeo/YouTube, **Kontakt per WhatsApp/Instagram/X**, Social-Links,
-      ggf. Sanity, ggf. KI-Backend des Ask-Widgets)
+      ggf. Sanity, ggf. Protokoll unbeantworteter Chat-Fragen, ggf. KI-Backend des Ask-Widgets)
 - [ ] AV-Vertrag mit dem Hoster
 - [ ] Server-Logs: Speicherdauer festlegen (IP-Adressen kürzen/kurz halten)
 - [ ] `Content-Security-Policy` im nginx ergänzen (siehe unten)

@@ -17,6 +17,9 @@ import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
 import { getTopic, type RichToken } from "./engine";
 import { defaultChips } from "./knowledge";
+import { ChatGallery } from "./ChatGallery";
+import { getGallery, type GalleryImage } from "./galleries";
+import { Lightbox } from "./Lightbox";
 import { chatStore, type ChatMessage, type MessageOptions } from "./store";
 import { TimeGreeting } from "./TimeGreeting";
 import styles from "./AskWidget.module.css";
@@ -42,6 +45,11 @@ export function AskWidget({ content }: { content?: AskContent }) {
   const logId = useId();
   const logRef = useRef<HTMLDivElement>(null);
   const focusOptionsNext = useRef(false);
+  const [lightbox, setLightbox] = useState<{
+    images: GalleryImage[];
+    index: number;
+    lang: Locale;
+  } | null>(null);
 
   const hasHistory = chat.messages.length > 0;
   const lastMessage = chat.messages.at(-1);
@@ -96,9 +104,17 @@ export function AskWidget({ content }: { content?: AskContent }) {
     });
   };
 
+  /** Antwort als Text verschicken (z. B. Auswahl in der geführten Anfrage) */
+  const sendReply = (text: string, lang: Locale) => {
+    if (chat.busy) return;
+    focusOptionsNext.current = true;
+    void chatStore.ask(text, { pageLocale: locale, lang, content });
+  };
+
   const renderOptions = (options: MessageOptions) => {
     const ids = labelled(options.ids, options.lang);
-    if (ids.length === 0) return null;
+    const replies = options.replies ?? [];
+    if (ids.length === 0 && replies.length === 0) return null;
     return (
       <div
         className={styles.options}
@@ -118,6 +134,17 @@ export function AskWidget({ content }: { content?: AskContent }) {
             {options.style === "list" && (
               <Icon name="arrowRight" size={14} className={styles.optionIcon} />
             )}
+          </button>
+        ))}
+        {replies.map((reply) => (
+          <button
+            key={reply}
+            type="button"
+            className={styles.option}
+            onClick={() => sendReply(reply, options.lang)}
+          >
+            {reply}
+            <Icon name="arrowRight" size={14} className={styles.optionIcon} />
           </button>
         ))}
       </div>
@@ -181,6 +208,7 @@ export function AskWidget({ content }: { content?: AskContent }) {
                   options={
                     m === lastMessage && !chat.busy && m.options ? renderOptions(m.options) : null
                   }
+                  onOpenImage={(images, index, lang) => setLightbox({ images, index, lang })}
                 />
               ))}
             </div>
@@ -228,11 +256,29 @@ export function AskWidget({ content }: { content?: AskContent }) {
           </button>
         </div>
       </form>
+
+      {lightbox && (
+        <Lightbox
+          images={lightbox.images}
+          index={lightbox.index}
+          lang={lightbox.lang}
+          onIndex={(index) => setLightbox({ ...lightbox, index })}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 }
 
-function Message({ message, options }: { message: ChatMessage; options: ReactNode }) {
+function Message({
+  message,
+  options,
+  onOpenImage,
+}: {
+  message: ChatMessage;
+  options: ReactNode;
+  onOpenImage: (images: GalleryImage[], index: number, lang: Locale) => void;
+}) {
   const t = useT();
   const isBot = message.from === "bot";
   const typing = message.visible < message.tokens.length;
@@ -260,8 +306,28 @@ function Message({ message, options }: { message: ChatMessage; options: ReactNod
           )}
         </div>
       </div>
+      {message.gallery && !message.pending && !typing && (
+        <MessageGallery gallery={message.gallery} onOpenImage={onOpenImage} />
+      )}
       {options}
     </div>
+  );
+}
+
+function MessageGallery({
+  gallery,
+  onOpenImage,
+}: {
+  gallery: NonNullable<ChatMessage["gallery"]>;
+  onOpenImage: (images: GalleryImage[], index: number, lang: Locale) => void;
+}) {
+  const images = getGallery(gallery.id);
+  return (
+    <ChatGallery
+      images={images}
+      lang={gallery.lang}
+      onOpen={(index) => onOpenImage(images, index, gallery.lang)}
+    />
   );
 }
 

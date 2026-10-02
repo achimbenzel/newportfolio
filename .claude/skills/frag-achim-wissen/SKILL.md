@@ -49,9 +49,21 @@ ohne Code-Änderung mitwachsen. Texte, die auf der Website stehen, nicht zusätz
 - Gibt es je Fachgebiet eine andere Antwort? → `facets` beim Aspekt.
 - `label` + `q` setzen, wenn das Thema als Vorschlag (Chip) auftauchen kann.
 - Werte, die sich ändern (Alter …), nie fest eintragen, sondern berechnen (`profile`, Platzhalter).
+- Ja/Nein-Frage am Ende der Antwort? → `offer: { yes: "<thema>", de, en }` (bei „Ja“ folgt das Thema).
+- Bilder zeigen? → Fotos nach `assets/photos/<album>/originals/`, `npm run photos`, Alt-Texte DE/EN in
+  `features/ask/galleries.ts`, am Thema `gallery: "<id>"` (Anleitung: `docs/10-anleitungen.md`).
+- Neue Fakten zu Konditionen (Budget-Grenzen …)? → auch `profile` und die geführte Anfrage
+  (`askTexts[lang].inquiry`) prüfen, damit beide dasselbe sagen.
 - **Nichts erfinden:** keine Preise, Termine, Kunden oder Leistungen, die Achim nicht genannt hat.
 
-## 4. Prüfen
+## 4. Unbeantwortete Fragen einarbeiten
+
+Ist das Fragen-Protokoll eingeschaltet (`docs/09-ask-widget.md`), liefert
+`npm run ask:report -- <ask-log.jsonl>` die häufigsten unbeantworteten Fragen. Für jede: passendes
+Thema finden → als Beispielfrage (DE und EN) eintragen, ggf. Synonym/Stichwort; gibt es noch kein
+Thema und Achim hat die Antwort genannt → neues Thema. Unbekanntes nicht raten, sondern Achim fragen.
+
+## 5. Prüfen
 
 ```bash
 npm test          # alle Test- und Beispielfragen DE + EN

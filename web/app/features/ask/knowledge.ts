@@ -39,6 +39,7 @@
  * Nach jeder Änderung: `npm test`.
  */
 import type { Locale } from "~/i18n/config";
+import type { GalleryId } from "./galleries";
 
 export type TopicKind = "smallTalk" | "subject" | "aspect" | "general";
 /** Ein Text oder mehrere Varianten (zufällige Auswahl → wirkt lebendiger) */
@@ -53,11 +54,18 @@ export type Topic = {
   followUps: string[];
   parent?: string;
   facets?: Record<string, Record<Locale, Text>>;
+  /** Ja/Nein-Angebot am Ende der Antwort („Möchtest du Bilder sehen?“) – bei „Ja“ folgt `yes` */
+  offer?: { yes: string } & Record<Locale, string>;
+  /** Bildergalerie unter der Antwort (siehe galleries.ts) */
+  gallery?: GalleryId;
 } & Record<Locale, TopicText>;
 
 /** Feste Fakten für berechnete Antworten */
 export const profile = {
   birthDate: "2000-10-04",
+  /** Projekte mit Neukunden ab … € / Erstgespräch als Call ab … € (geführte Anfrage) */
+  minBudget: 300,
+  callFrom: 750,
 };
 
 export const askTexts: Record<
@@ -70,6 +78,26 @@ export const askTexts: Record<
     clarify: string;
     also: string;
     birthdayToday: string;
+    /** Antwort auf „Nein“ nach einem Angebot */
+    noThanks: Text;
+    /** Treffer in den Website-Texten: {title} {snippet} {link} */
+    searchHit: string;
+    /* ── Geführte Anfrage (inquiry.ts) ── */
+    inquiry: {
+      steps: { question: string; options: string[] }[];
+      skip: string;
+      cancel: string;
+      cancelled: string;
+      repeat: string;
+      summary: string;
+      lines: string[];
+      lowBudget: string;
+      call: string;
+      subject: string;
+      mailIntro: string;
+      mailOutro: string;
+      notSpecified: string;
+    };
     /* ── Vorlagen für automatisch erzeugte Antworten (content.ts) ── */
     projects: string;
     projectFacet: string;
@@ -103,6 +131,60 @@ export const askTexts: Record<
     clarify: "Meinst du {a} oder {b}?",
     also: "\n\nAußerdem: ",
     birthdayToday: " – also heute!",
+    noThanks: [
+      "Alles klar! Frag mich gern etwas anderes.",
+      "Kein Problem – womit kann ich dir sonst helfen?",
+    ],
+    searchHit:
+      "Dazu habe ich auf der Seite „{title}“ etwas gefunden: „{snippet}“ [Mehr dazu]({link})",
+    inquiry: {
+      steps: [
+        {
+          question:
+            "Gern! Ich stelle dir drei kurze Fragen, danach bekommst du eine fertige Nachricht an mich. Worum geht es?",
+          options: [
+            "Branding & Logo",
+            "Motion Design & Animation",
+            "Musik-Visuals",
+            "Grafik & Print",
+            "Social Media",
+            "Website",
+            "Etwas anderes",
+          ],
+        },
+        {
+          question: "Bis wann brauchst du es ungefähr?",
+          options: [
+            "So schnell wie möglich",
+            "In den nächsten Wochen",
+            "In ein bis drei Monaten",
+            "Noch offen",
+          ],
+        },
+        {
+          question: "Hast du schon ein grobes Budget im Kopf?",
+          options: ["Unter 300 €", "300–750 €", "Über 750 €", "Weiß ich noch nicht"],
+        },
+        {
+          question:
+            "Magst du noch kurz beschreiben, was du dir vorstellst? Ein, zwei Sätze reichen – oder überspring es einfach.",
+          options: [],
+        },
+      ],
+      skip: "Überspringen",
+      cancel: "Abbrechen",
+      cancelled: "Kein Problem, ich habe die Anfrage verworfen. Frag mich gern etwas anderes.",
+      repeat: "Und zurück zu deiner Anfrage: ",
+      summary:
+        "Danke! Hier ist deine Anfrage:\n{lines}\n{note}Schick sie mir mit einem Klick: [per E-Mail]({mailto}) oder [per WhatsApp]({whatsapp}).",
+      lines: ["Projekt", "Zeitraum", "Budget", "Details"],
+      lowBudget: "Kurzer Hinweis: Projekte mit Neukunden starten bei mir ab {min} €. ",
+      call: "Bei diesem Rahmen machen wir das Erstgespräch gern als Call. ",
+      subject: "Projektanfrage: {type}",
+      mailIntro: "Hallo Achim,\n\nich interessiere mich für ein Projekt mit dir:\n",
+      mailOutro: "\nViele Grüße\n",
+      notSpecified: "keine Angabe",
+    },
     /** Antwort auf „Welche Projekte …?“, sobald es Projekte gibt – {list} = Projekte mit Links */
     projects:
       "Zum Beispiel {list}. Alle Projekte findest du auf der Seite [Projekte]({base}/work), noch mehr Arbeiten auf {social:behance}.",
@@ -149,6 +231,60 @@ export const askTexts: Record<
     clarify: "Do you mean {a} or {b}?",
     also: "\n\nAlso: ",
     birthdayToday: " – that's today!",
+    noThanks: [
+      "Alright! Feel free to ask me something else.",
+      "No problem – what else can I help you with?",
+    ],
+    searchHit:
+      "I found something about that on the page “{title}”: “{snippet}” [Read more]({link})",
+    inquiry: {
+      steps: [
+        {
+          question:
+            "Sure! I'll ask you three quick questions, then you'll get a ready-made message to me. What is it about?",
+          options: [
+            "Branding & logo",
+            "Motion design & animation",
+            "Music visuals",
+            "Graphic & print",
+            "Social media",
+            "Website",
+            "Something else",
+          ],
+        },
+        {
+          question: "Roughly when do you need it?",
+          options: [
+            "As soon as possible",
+            "In the next few weeks",
+            "In one to three months",
+            "Not sure yet",
+          ],
+        },
+        {
+          question: "Do you have a rough budget in mind?",
+          options: ["Under €300", "€300–750", "Over €750", "Not sure yet"],
+        },
+        {
+          question:
+            "Would you like to briefly describe what you have in mind? One or two sentences are enough – or just skip it.",
+          options: [],
+        },
+      ],
+      skip: "Skip",
+      cancel: "Cancel",
+      cancelled: "No problem, I've discarded the inquiry. Feel free to ask me something else.",
+      repeat: "Back to your inquiry: ",
+      summary:
+        "Thanks! Here's your inquiry:\n{lines}\n{note}Send it to me with one click: [by email]({mailto}) or [via WhatsApp]({whatsapp}).",
+      lines: ["Project", "Timeline", "Budget", "Details"],
+      lowBudget: "Quick note: projects with new clients start at €{min}. ",
+      call: "With this scope, we can happily do the first conversation as a call. ",
+      subject: "Project inquiry: {type}",
+      mailIntro: "Hi Achim,\n\nI'm interested in a project with you:\n",
+      mailOutro: "\nBest regards\n",
+      notSpecified: "not specified",
+    },
     projects:
       "For example {list}. You'll find all projects on the [Work page]({base}/work) and even more work on {social:behance}.",
     projectFacet: "I can't give you exact details for {title} here – in general: ",
@@ -212,7 +348,7 @@ export const greetingPrompts: Record<Locale, string[]> = {
 };
 
 /** Vorschläge, bevor etwas gefragt wurde */
-export const defaultChips = ["services", "process", "price", "revisions", "contact"];
+export const defaultChips = ["services", "process", "price", "revisions", "inquiry", "contact"];
 
 /** Begriffe für Fragen, die nichts mit Achims Arbeit zu tun haben */
 export const offTopicWords = [
@@ -563,6 +699,98 @@ export const followUpStarters = [
 ];
 
 /**
+ * Antworten auf Ja/Nein-Fragen des Bots („Möchtest du Bilder sehen?“) und auf Auswahl-Rückfragen
+ * („Meinst du A oder B?“ → „das erste“). Gelten nur bei kurzen Nachrichten.
+ */
+export const replyWords = {
+  yes: [
+    "ja",
+    "jo",
+    "jap",
+    "jep",
+    "jup",
+    "ja bitte",
+    "ja gerne",
+    "ja gern",
+    "gerne",
+    "gern",
+    "klar",
+    "na klar",
+    "sicher",
+    "ok",
+    "okay",
+    "auf jeden fall",
+    "unbedingt",
+    "bitte",
+    "zeig mal",
+    "zeig her",
+    "warum nicht",
+    "yes",
+    "yeah",
+    "yep",
+    "yup",
+    "sure",
+    "of course",
+    "please",
+    "yes please",
+    "definitely",
+    "absolutely",
+    "why not",
+    "go ahead",
+    "show me",
+  ],
+  no: [
+    "nein",
+    "nö",
+    "ne",
+    "nee",
+    "nein danke",
+    "lieber nicht",
+    "nicht nötig",
+    "kein bedarf",
+    "eher nicht",
+    "später",
+    "no",
+    "nope",
+    "nah",
+    "no thanks",
+    "not now",
+    "maybe later",
+    "later",
+  ],
+  /** Auswahl per Reihenfolge – Index 0 = erste Option, -1 = letzte */
+  ordinals: [
+    {
+      index: 0,
+      words: ["erste", "ersten", "erstes", "erster", "eins", "1", "first", "one", "1st"],
+    },
+    {
+      index: 1,
+      words: ["zweite", "zweiten", "zweites", "zweiter", "zwei", "2", "second", "two", "2nd"],
+    },
+    {
+      index: 2,
+      words: ["dritte", "dritten", "drittes", "dritter", "drei", "3", "third", "three", "3rd"],
+    },
+    { index: -1, words: ["letzte", "letzten", "letztes", "letzter", "last"] },
+  ],
+  /** Geführte Anfrage abbrechen / Frage überspringen */
+  cancel: [
+    "abbrechen",
+    "abbruch",
+    "stop",
+    "stopp",
+    "doch nicht",
+    "vergiss es",
+    "cancel",
+    "never mind",
+    "nevermind",
+    "quit",
+  ],
+  skip: ["überspringen", "skip", "weiter", "nichts", "nein", "no", "-", "keine", "kein", "next"],
+};
+
+/**
  * Wörter, die der Wortstamm-Kürzer falsch kürzen würde („Poster“ → „post“ wie Social-Media-Post).
  * Schlüssel = Wort klein und ohne Umlaute (ä → a), Wert = gewünschter Stamm.
  */
@@ -641,6 +869,8 @@ export const synonyms: string[][] = [
     "lead time",
     "delivery time",
     "time frame",
+    "wie viel zeit",
+    "wieviel zeit",
   ],
   // Korrekturschleifen
   [
@@ -1048,10 +1278,30 @@ export const topics: Topic[] = [
   {
     id: "branding",
     kind: "subject",
-    keywords: ["branding", "guidelines", "styleguide", "corporate"],
+    keywords: [
+      "branding",
+      "guidelines",
+      "styleguide",
+      "corporate",
+      "markenentwicklung",
+      "markenaufbau",
+      "markendesign",
+      "auftritt",
+      "build a brand",
+    ],
     examples: {
-      de: ["Erzähl mir etwas über Branding", "Machst du auch Corporate Design?"],
-      en: ["Tell me about brand identity", "Do you do branding?"],
+      de: [
+        "Erzähl mir etwas über Branding",
+        "Machst du auch Corporate Design?",
+        "Machst du Markenentwicklung?",
+        "Kannst du meiner Firma einen neuen Auftritt geben?",
+      ],
+      en: [
+        "Tell me about brand identity",
+        "Do you do branding?",
+        "Can you build a brand for my company?",
+        "Do you create brand identities?",
+      ],
     },
     followUps: ["duration", "process", "existing"],
     de: {
@@ -1071,8 +1321,18 @@ export const topics: Topic[] = [
     parent: "branding",
     keywords: ["logo"],
     examples: {
-      de: ["Ich brauche ein neues Logo", "Machst du Logos?"],
-      en: ["I need a logo", "Do you design logos?"],
+      de: [
+        "Ich brauche ein neues Logo",
+        "Machst du Logos?",
+        "Kannst du mir ein Logo gestalten?",
+        "Ich suche jemanden für ein Logo",
+      ],
+      en: [
+        "I need a logo",
+        "Do you design logos?",
+        "Can you make a logo for my business?",
+        "Do you create logos?",
+      ],
     },
     followUps: ["duration", "existing", "price"],
     de: {
@@ -1157,10 +1417,24 @@ export const topics: Topic[] = [
       "videoschnitt",
       "video editing",
       "editing",
+      "erklärvideo",
+      "erklärvideos",
+      "explainer video",
+      "explainer",
     ],
     examples: {
-      de: ["Erzähl mir etwas über Motion Design", "Ich brauche ein Video für meinen Launch"],
-      en: ["Tell me about motion design", "Do you make videos?"],
+      de: [
+        "Erzähl mir etwas über Motion Design",
+        "Ich brauche ein Video für meinen Launch",
+        "Machst du Animationen?",
+        "Kannst du Erklärvideos machen?",
+      ],
+      en: [
+        "Tell me about motion design",
+        "Do you make videos?",
+        "Can you animate things?",
+        "Do you make explainer videos?",
+      ],
     },
     followUps: ["duration", "process", "existing"],
     de: {
@@ -1218,8 +1492,18 @@ export const topics: Topic[] = [
     kind: "subject",
     keywords: ["musik", "cover", "vinyl"],
     examples: {
-      de: ["Was machst du für Musik?", "Gestaltest du auch Albumcover?"],
-      en: ["What do you do for music?", "Do you design album covers?"],
+      de: [
+        "Was machst du für Musik?",
+        "Gestaltest du auch Albumcover?",
+        "Machst du Cover für Musiker?",
+        "Kannst du ein Albumcover gestalten?",
+      ],
+      en: [
+        "What do you do for music?",
+        "Do you design album covers?",
+        "Can you design my album cover?",
+        "Do you work with musicians?",
+      ],
     },
     followUps: ["releaseVisuals", "prepare", "duration"],
     de: {
@@ -1500,10 +1784,26 @@ export const topics: Topic[] = [
       "how soon",
       "when will it be ready",
       "when is it done",
+      "wann * fertig",
+      "when * done",
+      "when * ready",
+      "when * finished",
     ],
     examples: {
-      de: ["Wie lange dauert ein Projekt?", "Wie schnell bist du fertig?"],
-      en: ["How long does a project take?", "What's the turnaround?"],
+      de: [
+        "Wie lange dauert ein Projekt?",
+        "Wie schnell bist du fertig?",
+        "Wann wäre es fertig?",
+        "Wie lange brauchst du für eine Logo-Animation?",
+        "Wie viel Zeit muss ich einplanen?",
+      ],
+      en: [
+        "How long does a project take?",
+        "What's the turnaround?",
+        "How soon can you deliver?",
+        "How many weeks does it take?",
+        "When would it be done?",
+      ],
     },
     followUps: ["price", "revisions", "process"],
     de: {
@@ -1552,8 +1852,24 @@ export const topics: Topic[] = [
       "how much do you charge",
     ],
     examples: {
-      de: ["Was kostet das?", "Wie teuer ist ein Logo?", "Was nimmst du für ein Cover?"],
-      en: ["What does it cost?", "What's your rate?", "How much does a brand identity cost?"],
+      de: [
+        "Was kostet das?",
+        "Wie teuer ist ein Logo?",
+        "Was nimmst du für ein Cover?",
+        "Wie viel kostet ein Logo?",
+        "Was kostet eine Markenidentität?",
+        "Wie teuer bist du?",
+        "Hast du eine Preisliste?",
+      ],
+      en: [
+        "What does it cost?",
+        "What's your rate?",
+        "How much does a brand identity cost?",
+        "How much do you charge?",
+        "How expensive are you?",
+        "Do you have a price list?",
+        "What would a logo cost?",
+      ],
     },
     followUps: ["minimum", "payment", "revisions"],
     de: {
@@ -1711,10 +2027,27 @@ export const topics: Topic[] = [
       "make changes",
       "änderungen machen",
       "änderungen vornehmen",
+      "nicht gefällt",
+      "gefällt mir nicht",
+      "don t like",
+      "do not like",
+      "not happy",
     ],
     examples: {
-      de: ["Wie viele Korrekturschleifen sind dabei?", "Gibt es Feedbackrunden?"],
-      en: ["How many revisions do I get?", "Are rounds of feedback included?"],
+      de: [
+        "Wie viele Korrekturschleifen sind dabei?",
+        "Gibt es Feedbackrunden?",
+        "Kann ich Änderungen wünschen?",
+        "Was ist, wenn mir der Entwurf nicht gefällt?",
+        "Sind Korrekturen inklusive?",
+      ],
+      en: [
+        "How many revisions do I get?",
+        "Are rounds of feedback included?",
+        "Can I request changes?",
+        "What if I don't like the design?",
+        "Are corrections included?",
+      ],
     },
     followUps: ["duration", "price", "process"],
     de: {
@@ -1740,7 +2073,6 @@ export const topics: Topic[] = [
       "how do you work",
       "how it works",
       "get started",
-      "start a project",
       "wie arbeiten wir zusammen",
       "wie gehst du vor",
       "wie startet",
@@ -1760,6 +2092,9 @@ export const topics: Topic[] = [
       "what happens next",
       "what happens after",
       "what is the process",
+      "working with you look like",
+      "what does * look like",
+      "wie sieht * aus",
     ],
     examples: {
       de: [
@@ -1767,12 +2102,20 @@ export const topics: Topic[] = [
         "Wie funktioniert ein Projekt?",
         "Wie arbeiten wir zusammen?",
         "Was sind die nächsten Schritte?",
+        "Wie läuft die Zusammenarbeit ab?",
+        "Was sind die Schritte?",
+        "Wie sieht der Ablauf aus?",
+        "Wie gehst du bei einem Projekt vor?",
       ],
       en: [
         "How does a project work?",
         "What does your process look like?",
         "How do we work together?",
         "What happens next?",
+        "How do you work with clients?",
+        "What are the steps?",
+        "Walk me through your process",
+        "What does working with you look like?",
       ],
     },
     followUps: ["firstCall", "duration", "price"],
@@ -1826,10 +2169,22 @@ export const topics: Topic[] = [
       "erstes gespräch",
       "first conversation",
       "free call",
+      "unverbindlich sprechen",
+      "erste gespräch",
     ],
     examples: {
-      de: ["Ist das Erstgespräch kostenlos?", "Gibt es ein Kennenlerngespräch?"],
-      en: ["Is the first call free?", "Do you offer a free consultation?"],
+      de: [
+        "Ist das Erstgespräch kostenlos?",
+        "Gibt es ein Kennenlerngespräch?",
+        "Kostet das erste Gespräch etwas?",
+        "Können wir erst mal unverbindlich sprechen?",
+      ],
+      en: [
+        "Is the first call free?",
+        "Do you offer a free consultation?",
+        "Can we have a free intro call?",
+        "Is the first conversation free?",
+      ],
     },
     followUps: ["process", "prepare", "contact"],
     de: {
@@ -1859,8 +2214,18 @@ export const topics: Topic[] = [
       "questionnaire",
     ],
     examples: {
-      de: ["Was muss ich vorbereiten?", "Was brauchst du von mir?"],
-      en: ["What do I need to prepare?", "What do you need from me?"],
+      de: [
+        "Was muss ich vorbereiten?",
+        "Was brauchst du von mir?",
+        "Was brauchst du für den Start?",
+        "Was soll ich mitbringen?",
+      ],
+      en: [
+        "What do I need to prepare?",
+        "What do you need from me?",
+        "What should I bring?",
+        "What info do you need to start?",
+      ],
     },
     followUps: ["process", "price", "contact"],
     de: {
@@ -2079,8 +2444,18 @@ export const topics: Topic[] = [
       "diese woche",
     ],
     examples: {
-      de: ["Bist du gerade verfügbar?", "Hast du Zeit für ein Projekt?"],
-      en: ["Are you available next month?", "Are you taking on new projects?"],
+      de: [
+        "Bist du gerade verfügbar?",
+        "Hast du Zeit für ein Projekt?",
+        "Kannst du nächsten Monat anfangen?",
+        "Hast du gerade Kapazitäten?",
+      ],
+      en: [
+        "Are you available next month?",
+        "Are you taking on new projects?",
+        "Do you have capacity right now?",
+        "Can you start next month?",
+      ],
     },
     followUps: ["contact", "rush", "duration"],
     de: {
@@ -2184,7 +2559,6 @@ export const topics: Topic[] = [
       "projekte sehen",
       "projekte gemacht",
       "kundenprojekte",
-      "zeig mir",
       "references",
       "your work",
       "selected work",
@@ -2192,7 +2566,6 @@ export const topics: Topic[] = [
       "your projects",
       "which projects",
       "projects have you",
-      "show me",
       "client work",
       "bisherige arbeiten",
       "bisherige projekte",
@@ -2207,14 +2580,28 @@ export const topics: Topic[] = [
       "examples of your work",
       "bisher gemacht",
       "bisherige arbeit",
+      "zeig mir deine arbeiten",
+      "zeig mir deine projekte",
+      "show me your work",
+      "show me your projects",
     ],
     examples: {
       de: [
         "Kann ich Referenzen sehen?",
         "Welche Projekte hast du gemacht?",
         "Kann ich Arbeitsproben sehen?",
+        "Wo finde ich deine Projekte?",
+        "Hast du Beispiele?",
+        "Kann ich mir Arbeiten von dir anschauen?",
       ],
-      en: ["Do you have a portfolio?", "Show me your projects", "Can I see some work samples?"],
+      en: [
+        "Do you have a portfolio?",
+        "Show me your projects",
+        "Can I see some work samples?",
+        "Where can I see your projects?",
+        "Do you have examples?",
+        "Can I look at some of your work?",
+      ],
     },
     followUps: ["clients", "range", "contact"],
     de: {
@@ -2238,12 +2625,7 @@ export const topics: Topic[] = [
       "dm",
       "nachricht",
       "zusammenarbeiten",
-      "beauftragen",
-      "buchen",
-      "projekt starten",
       "mit dir arbeiten",
-      "hire",
-      "book",
       "work together",
       "collaborate",
       "work with you",
@@ -2256,9 +2638,6 @@ export const topics: Topic[] = [
       "dir schreiben",
       "dich anschreiben",
       "schreib mir",
-      "projekt für dich",
-      "auftrag für dich",
-      "anfrage für dich",
       "mit dir sprechen",
       "mit dir reden",
       "dich sprechen",
@@ -2269,8 +2648,6 @@ export const topics: Topic[] = [
       "talk to you",
       "speak with you",
       "speak to you",
-      "project for you",
-      "job for you",
       "email you",
       "ping you",
       "drop you a line",
@@ -2281,16 +2658,27 @@ export const topics: Topic[] = [
         "Wie ist deine E-Mail-Adresse?",
         "Kann ich dir auf WhatsApp schreiben?",
         "Wie kann ich dich kontaktieren?",
-        "Ich hätte ein Projekt für dich",
+        "Wie kann ich dich am besten erreichen?",
+        "Wie kontaktiere ich dich?",
+        "Kann ich dir eine Mail schreiben?",
+        "Hast du WhatsApp?",
       ],
       en: [
         "How can I get in touch?",
         "Can I call you?",
         "How can I contact you?",
-        "I'd like to hire you",
+        "What's the best way to reach you?",
+        "How do I contact you?",
+        "Can I email you?",
+        "Do you have WhatsApp?",
       ],
     },
     followUps: ["firstCall", "price", "work"],
+    offer: {
+      yes: "inquiry",
+      de: "Soll ich dir helfen, deine Anfrage vorzubereiten?",
+      en: "Shall I help you put together your inquiry?",
+    },
     de: {
       label: "Kontakt",
       q: "Wie kann ich Kontakt aufnehmen?",
@@ -2300,6 +2688,64 @@ export const topics: Topic[] = [
       label: "get in touch",
       q: "How can I get in touch?",
       a: `Email me at ${email}, message me on WhatsApp at [{whatsapp}]({whatsappLink}) or send a DM on {social:instagram} or {social:x}. Or use the [contact page]({base}/contact) – I'd love to hear from you.`,
+    },
+  },
+  {
+    id: "inquiry",
+    kind: "general",
+    keywords: [
+      "anfrage stellen",
+      "anfrage vorbereiten",
+      "anfrage schicken",
+      "anfrage senden",
+      "projekt anfragen",
+      "angebot anfragen",
+      "projekt starten",
+      "projekt beginnen",
+      "dich buchen",
+      "dich beauftragen",
+      "projekt für dich",
+      "auftrag für dich",
+      "anfrage für dich",
+      "hire you",
+      "book you",
+      "start a project",
+      "request a quote",
+      "send an inquiry",
+      "make an inquiry",
+      "send a request",
+      "project for you",
+      "job for you",
+      "kann ich dich buchen",
+      "wie buche ich dich",
+      "can i book you",
+      "hire me",
+    ],
+    examples: {
+      de: [
+        "Ich möchte ein Projekt anfragen",
+        "Ich hätte ein Projekt für dich",
+        "Ich würde dich gern buchen",
+        "Kann ich bei dir ein Projekt anfragen?",
+      ],
+      en: [
+        "I'd like to hire you",
+        "I want to start a project",
+        "Can I book you for a project?",
+        "I want to request a quote",
+      ],
+    },
+    // Ablauf in inquiry.ts: drei kurze Fragen → fertige Nachricht per E-Mail/WhatsApp
+    followUps: [],
+    de: {
+      label: "Projekt anfragen",
+      q: "Ich möchte ein Projekt anfragen",
+      a: "Gern! Ich stelle dir drei kurze Fragen, danach bekommst du eine fertige Nachricht an mich.",
+    },
+    en: {
+      label: "start a project",
+      q: "I'd like to start a project",
+      a: "Sure! I'll ask you three quick questions, then you'll get a ready-made message to me.",
     },
   },
 
@@ -2329,10 +2775,31 @@ export const topics: Topic[] = [
       "what can you do for me",
       "what do you do for a living",
       "your services",
+      "womit kannst du * helfen",
+      "wobei kannst du * helfen",
+      "what kind of work",
+      "was genau machst du",
+      "was machst du genau",
+      "what exactly do you do",
+      "what do you do exactly",
     ],
     examples: {
-      de: ["Was bietest du an?", "Was machst du so?"],
-      en: ["What services do you offer?", "What do you do?"],
+      de: [
+        "Was bietest du an?",
+        "Was machst du so?",
+        "Was genau machst du?",
+        "Welche Leistungen hast du?",
+        "Womit kannst du mir helfen?",
+        "Was ist dein Angebot?",
+      ],
+      en: [
+        "What services do you offer?",
+        "What do you do?",
+        "What exactly do you do?",
+        "What can you help me with?",
+        "What kind of work do you do?",
+        "Tell me about your services",
+      ],
     },
     followUps: ["branding", "motion", "music"],
     de: {
@@ -2471,6 +2938,9 @@ export const topics: Topic[] = [
       "why hire",
       "what makes you different",
       "strengths",
+      "why should i hire you",
+      "warum sollte ich dich buchen",
+      "why hire you",
     ],
     examples: {
       de: ["Warum sollte ich mit dir arbeiten?", "Was macht dich als Designer aus?"],
@@ -2534,10 +3004,21 @@ export const topics: Topic[] = [
       "freelancer",
       "freiberuflich",
       "selbstständig",
+      "stell dich vor",
+      "stell dich mal vor",
+      "wer steckt hinter",
+      "introduce yourself",
+      "who s behind",
+      "who is behind",
     ],
     examples: {
-      de: ["Wer bist du?", "Erzähl mal was über dich"],
-      en: ["Who is Achim?", "Tell me about you"],
+      de: [
+        "Wer bist du?",
+        "Erzähl mal was über dich",
+        "Stell dich mal vor",
+        "Wer steckt hinter der Seite?",
+      ],
+      en: ["Who is Achim?", "Tell me about you", "Introduce yourself", "Who's behind this site?"],
     },
     followUps: ["journey", "whyMe", "location"],
     de: {
@@ -3153,7 +3634,12 @@ export const topics: Topic[] = [
       de: ["Reist du gern?", "Was ist dein Lieblingsland?"],
       en: ["Do you like to travel?", "What's your favorite country?"],
     },
-    followUps: ["hobbies", "musicTaste", "about"],
+    followUps: ["japanPhotos", "hobbies", "musicTaste"],
+    offer: {
+      yes: "japanPhotos",
+      de: "Möchtest du ein paar Bilder sehen?",
+      en: "Would you like to see some photos?",
+    },
     de: {
       label: "Reisen",
       q: "Reist du gern?",
@@ -3163,6 +3649,54 @@ export const topics: Topic[] = [
       label: "travel",
       q: "Do you like to travel?",
       a: "I love travelling – my favorite country so far is Japan, where I was in 2024.",
+    },
+  },
+  {
+    id: "japanPhotos",
+    kind: "general",
+    keywords: [
+      "fotos aus japan",
+      "bilder aus japan",
+      "japan fotos",
+      "japan bilder",
+      "japanfotos",
+      "japanbilder",
+      "urlaubsfotos",
+      "urlaubsbilder",
+      "reisefotos",
+      "reisebilder",
+      "photos from japan",
+      "pictures from japan",
+      "japan photos",
+      "japan pictures",
+      "travel photos",
+      "holiday photos",
+      "vacation photos",
+      "zeig mir bilder",
+      "zeig mir fotos",
+      "bilder sehen",
+      "fotos sehen",
+      "show me pictures",
+      "show me photos",
+      "see pictures",
+      "see photos",
+      "see some photos",
+    ],
+    examples: {
+      de: ["Hast du Fotos aus Japan?", "Zeig mir Bilder aus deinem Urlaub"],
+      en: ["Can I see photos from Japan?", "Show me pictures from your trip"],
+    },
+    followUps: ["travel", "hobbies", "about"],
+    gallery: "japan",
+    de: {
+      label: "Japan-Fotos",
+      q: "Zeig mir Bilder aus Japan",
+      a: "Gern! Hier sind ein paar Eindrücke aus meinem Japan-Urlaub 2024 – tippe auf ein Bild, um es zu vergrößern.",
+    },
+    en: {
+      label: "Japan photos",
+      q: "Show me photos from Japan",
+      a: "Sure! Here are a few impressions from my trip to Japan in 2024 – tap a photo to enlarge it.",
     },
   },
   {

@@ -17,6 +17,8 @@ npm run studio       # Sanity Studio lokal → http://localhost:3333 (braucht st
 npm run build        # statischen Build erzeugen → web/build/client
 npm run preview      # Build lokal ansehen (verhält sich wie der nginx-Server)
 npm test             # Testfragen des Ask-Widgets (DE + EN)
+npm run photos       # Fotos aus assets/photos/ fürs Web aufbereiten (ohne Metadaten)
+npm run ask:report -- <datei>  # unbeantwortete Chat-Fragen auswerten (falls eingeschaltet)
 npm run check        # Format, Lint, Typen, Tests, Build – vor jedem Commit
 ```
 
@@ -38,7 +40,8 @@ Ohne Sanity-Zugangsdaten läuft die Website mit Platzhalter-Inhalten aus `web/ap
 │  │  └─ styles/      Design-Tokens, Schriften, Basis-CSS
 │  └─ public/      statische Dateien (lokale Schriften, Favicon)
 ├─ studio/         Sanity Studio (Content-Modell / Schemas)
-├─ deploy/         nginx-Konfiguration + Dockerfile
+├─ assets/         Quelldateien, die NICHT ausgeliefert werden (z. B. Original-Fotos)
+├─ deploy/         nginx, Dockerfile, docker-compose, ask-log (optionaler Dienst für Chat-Fragen)
 └─ docs/           Dokumentation & verbindliche Regeln
 ```
 

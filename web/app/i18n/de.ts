@@ -50,6 +50,13 @@ export const de = {
     bot: "Achim",
     suggestions: "Vorschläge",
     thinking: "Achim tippt …",
+    enlarge: "Bild vergrößern",
+    imageDialog: "Bildansicht",
+    closeImage: "Bild schließen",
+    prevImage: "Vorheriges Bild",
+    nextImage: "Nächstes Bild",
+    imageCounter: "Bild {n} von {total}",
+    photos: "Fotos",
   },
   work: {
     title: "Projekte",

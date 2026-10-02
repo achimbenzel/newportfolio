@@ -68,6 +68,20 @@ In `components/ui/Icon.tsx` einen Eintrag im `icons`-Objekt ergänzen (24er-Rast
 6. Enthält der Block Wissen für den Chat (z. B. Zitat eines Kunden)? → `content/ask.server.ts` +
    `features/ask/content.ts` (siehe [09-ask-widget.md](09-ask-widget.md)).
 
+## Fotos für den Chat
+
+Beispiel: die Japan-Galerie („Möchtest du ein paar Bilder sehen?“).
+
+1. Originale nach `assets/photos/<album>/originals/` legen, Dateiname = Reihenfolge + Motiv
+   (z. B. `10-fuji.jpg`). Die Originale werden **nicht** ausgeliefert.
+2. `npm run photos` → erzeugt `web/public/images/<album>/<name>-480.webp` (Vorschau) und
+   `-1600.webp` (Vergrößerung), dreht Handyfotos richtig und **entfernt alle Metadaten**
+   (GPS-Standort, Kamera …). Außerdem `web/app/features/ask/photos.generated.ts`.
+3. In `web/app/features/ask/galleries.ts` für jedes neue Bild einen Alternativtext auf **Deutsch und
+   Englisch** eintragen (`npm test` meldet fehlende).
+4. Neues Album? → in `galleries` eintragen und an ein Thema hängen (`gallery: "…"` in
+   `knowledge.ts`, ggf. mit `offer` für die Ja/Nein-Frage).
+
 ## Neue Consent-Kategorie
 
 Siehe [06-datenschutz.md → Neuen Dienst hinzufügen](06-datenschutz.md#neuen-dienst-hinzufügen-z-b-statistik).

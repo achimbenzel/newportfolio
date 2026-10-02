@@ -16,10 +16,14 @@ import {
   getTopic,
   normalize,
   stem,
+  tokenize,
   type AskContext,
   type AskOptions,
 } from "./engine";
+import { galleryAltTexts, getGallery } from "./galleries";
 import { dayPeriod, greetingFor } from "./greeting";
+import { maskPersonalData } from "./log";
+import { photoFiles } from "./photos.generated";
 import {
   askTexts,
   defaultChips,
@@ -91,7 +95,7 @@ const cases: [string, string | null, Locale][] = [
   ["Wie lange hast du studiert?", "studied", "de"],
   ["Bist du eine KI?", "bot", "de"],
   ["Kannst du programmieren?", "tools", "de"],
-  ["Ich möchte ein Projekt starten", "contact", "de"],
+  ["Ich möchte ein Projekt starten", "inquiry", "de"],
   ["Machst du Plakate für Konzerte?", "graphic", "de"],
   ["Was hast du studiert?", "studied", "de"],
   ["Entwirfst du eigene Schriften?", "fonts", "de"],
@@ -507,12 +511,14 @@ const projects: AskProject[] = [
       category: "Brand Identity",
       industry: "Gastronomie",
       summary: "Ein Café & Bistro in Freisen.",
+      text: "Ein Café & Bistro in Freisen. Gegründet von der Köchin Kiara Balling, die auf Hausmannskost und eine gemütliche Atmosphäre setzt.",
     },
     en: {
       title: "Gute Stube Freisen",
       category: "Brand Identity",
       industry: "Gastronomy",
       summary: "A café and bistro in Freisen.",
+      text: "A café and bistro in Freisen. Founded by chef Kiara Balling, who focuses on home-style cooking and a cosy atmosphere.",
     },
   },
   {
@@ -525,20 +531,22 @@ const projects: AskProject[] = [
       category: "Brand Identity",
       industry: "Gastronomie",
       summary: "Ein Foodtruck aus Mainz.",
+      text: "Ein Foodtruck aus Mainz, der Picknickkörbe am Rheinufer vermietet.",
     },
     en: {
       title: "Joeys Picknick Mainz",
       category: "Brand Identity",
       industry: "Gastronomy",
       summary: "A food truck from Mainz.",
+      text: "A food truck from Mainz that rents out picnic baskets along the Rhine.",
     },
   },
   {
     slug: "lumakeys",
     year: 2026,
     keywords: [],
-    de: { title: "LumaKeys", category: "Logo Design", summary: "Ein Logo." },
-    en: { title: "LumaKeys", category: "Logo Design", summary: "A logo." },
+    de: { title: "LumaKeys", category: "Logo Design", summary: "Ein Logo.", text: "Ein Logo." },
+    en: { title: "LumaKeys", category: "Logo Design", summary: "A logo.", text: "A logo." },
   },
 ];
 
@@ -549,11 +557,15 @@ const services: AskService[] = [
       title: "Brand & Logo Design",
       intro: "Neue Einleitung aus dem CMS.",
       steps: ["Kennenlernen", "Entwurf", "Übergabe"],
+      details: [
+        "Kennenlernen: Wir sprechen über Zielgruppe, Wettbewerb und Tonalität deiner Marke.",
+      ],
     },
     en: {
       title: "Brand & Logo Design",
       intro: "New intro from the CMS.",
       steps: ["Meeting", "Draft", "Handover"],
+      details: ["Meeting: We talk about your audience, competitors and the tone of your brand."],
     },
   },
 ];
@@ -645,5 +657,188 @@ describe("Frag Achim – Leistungsseiten", () => {
   it("ohne Leistungsinhalt bleiben die festen Texte", () => {
     const answer = answerLocally("Erzähl mir etwas über Motion Design", { lang: "de", content });
     expect(answer.text).toContain("Storyboard");
+  });
+});
+
+/* ── Ja/Nein, Auswahl, Galerie ──────────────────────────────────────── */
+
+describe("Frag Achim – Ja/Nein & Auswahl", () => {
+  it("Japan → „Möchtest du Bilder sehen?“ → „Ja“ zeigt die Galerie", () => {
+    const ask = conversation("de");
+    const travel = ask("Warst du schon mal in Japan?");
+    expect(travel.text).toContain("Möchtest du ein paar Bilder sehen?");
+    expect(travel.context.offer).toBe("japanPhotos");
+    const yes = ask("Ja, gerne");
+    expect(yes.topicId).toBe("japanPhotos");
+    expect(yes.gallery).toBe("japan");
+  });
+
+  it("„Nein“ auf ein Angebot wird freundlich beantwortet, das Angebot verfällt", () => {
+    const ask = conversation("en");
+    ask("What's your favorite country?");
+    const no = ask("No thanks");
+    expect(no.text).toMatch(/Alright|No problem/);
+    expect(no.context.offer).toBeUndefined();
+    expect(ask("yes").topicId).toBe("help");
+  });
+
+  it("Angebot gilt nur für die nächste Antwort", () => {
+    const ask = conversation("de");
+    ask("Reist du gern?");
+    ask("Was kostet ein Logo?");
+    expect(ask("Ja").topicId).not.toBe("japanPhotos");
+  });
+
+  it("Fotos direkt anfragen", () => {
+    expect(answerLocally("Hast du Fotos aus Japan?", { lang: "de" }).gallery).toBe("japan");
+    expect(answerLocally("Show me pictures from your trip", { lang: "en" }).gallery).toBe("japan");
+  });
+
+  it("„das erste“ / „the second“ nach einer Rückfrage", () => {
+    const de = conversation("de");
+    const clarify = de("Cover oder Logo?");
+    expect(clarify.kind).toBe("clarify");
+    expect(de("das erste").topicId).toBe(clarify.followUps[0]);
+    const en = conversation("en");
+    const unsure = en("I need something");
+    expect(unsure.kind).toBe("unsure");
+    expect(en("the second one").topicId).toBe(unsure.followUps[1]);
+  });
+
+  it("Off-Topic bietet die Leistungen an – „ja“ zeigt sie", () => {
+    const ask = conversation("de");
+    expect(ask("Wie wird das Wetter morgen?").kind).toBe("offTopic");
+    expect(ask("ja klar").topicId).toBe("services");
+  });
+
+  it("Kontakt bietet die geführte Anfrage an", () => {
+    const ask = conversation("de");
+    expect(ask("Wie erreiche ich dich?").context.offer).toBe("inquiry");
+    expect(ask("ja").kind).toBe("inquiry");
+  });
+});
+
+describe("Frag Achim – Galerie", () => {
+  it("jedes Foto hat Alternativtexte auf Deutsch und Englisch – und umgekehrt", () => {
+    for (const [album, files] of Object.entries(photoFiles)) {
+      const texts = galleryAltTexts[album as keyof typeof photoFiles];
+      expect(Object.keys(texts).sort(), album).toEqual(files.map((f) => f.name).sort());
+      for (const [name, alt] of Object.entries(texts)) {
+        expect(alt.de, `${album}/${name}.de`).toBeTruthy();
+        expect(alt.en, `${album}/${name}.en`).toBeTruthy();
+      }
+    }
+  });
+
+  it("Galerie liefert Vorschau, Vergrößerung und Größe", () => {
+    const [first] = getGallery("japan");
+    expect(first?.thumb).toMatch(/^\/images\/japan-2024\/.+-480\.webp$/);
+    expect(first?.full).toMatch(/-1600\.webp$/);
+    expect(first?.width).toBeGreaterThan(0);
+  });
+});
+
+/* ── Geführte Anfrage ───────────────────────────────────────────────── */
+
+describe("Frag Achim – geführte Anfrage", () => {
+  it("führt in vier Schritten zu einer fertigen Nachricht (E-Mail + WhatsApp)", () => {
+    const ask = conversation("de");
+    const start = ask("Ich möchte ein Projekt anfragen");
+    expect(start.kind).toBe("inquiry");
+    expect(start.replies).toContain("Branding & Logo");
+    expect(start.replies).toContain("Abbrechen");
+    expect(ask("Branding & Logo").text).toContain("Bis wann");
+    expect(ask("In den nächsten Wochen").text).toContain("Budget");
+    const details = ask("Über 750 €");
+    expect(details.replies).toContain("Überspringen");
+    const done = ask("Ein Logo für mein Café (mit [Klammern])");
+    expect(done.context.inquiry).toBeUndefined();
+    expect(done.text).toContain("– Projekt: Branding & Logo");
+    expect(done.text).toContain("– Details: Ein Logo für mein Café mit Klammern");
+    expect(done.text).toContain("als Call");
+    const links = tokenize(done.text).filter((t) => t.type === "link");
+    expect(links.map((l) => (l.type === "link" ? l.href.split(":")[0] : ""))).toEqual([
+      "mailto",
+      "https",
+    ]);
+  });
+
+  it("Hinweis bei kleinem Budget, „Überspringen“ bei den Details", () => {
+    const ask = conversation("en");
+    ask("I'd like to hire you");
+    ask("Website");
+    ask("Not sure yet");
+    ask("Under €300");
+    const done = ask("Skip");
+    expect(done.text).toContain("start at €300");
+    expect(done.text).toContain("– Details: not specified");
+  });
+
+  it("Call-Hinweis erst ab 750 € (nicht bei „300–750 €“)", () => {
+    const run = (budget: string) => {
+      const ask = conversation("de");
+      ask("Ich möchte ein Projekt anfragen");
+      ask("Website");
+      ask("Noch offen");
+      ask(budget);
+      return ask("Überspringen").text;
+    };
+    expect(run("300–750 €")).not.toContain("als Call");
+    expect(run("Über 750 €")).toContain("als Call");
+    expect(run("ca. 1.500 Euro")).toContain("als Call");
+    expect(run("Unter 300 €")).toContain("ab 300 €");
+  });
+
+  it("„Abbrechen“ beendet die Anfrage", () => {
+    const ask = conversation("de");
+    ask("Ich will dich buchen");
+    const cancelled = ask("Abbrechen");
+    expect(cancelled.context.inquiry).toBeUndefined();
+    expect(cancelled.text).toContain("verworfen");
+  });
+
+  it("Zwischenfrage wird beantwortet, danach geht es mit der Anfrage weiter", () => {
+    const ask = conversation("de");
+    ask("Ich möchte ein Projekt anfragen");
+    ask("Musik-Visuals");
+    const side = ask("Wie lange dauert ein Projekt normalerweise?");
+    expect(side.topicId).toBe("duration");
+    expect(side.text).toContain("Und zurück zu deiner Anfrage: Bis wann");
+    expect(side.context.inquiry?.step).toBe(1);
+  });
+});
+
+/* ── Suche in den Website-Texten ─────────────────────────────────────── */
+
+describe("Frag Achim – Suche in den Website-Texten", () => {
+  it("findet Infos, die nur in Projektbeschreibungen stehen", () => {
+    const answer = answerLocally("Wer ist Kiara Balling?", { lang: "de", content });
+    expect(answer.kind).toBe("search");
+    expect(answer.text).toContain("Gute Stube Freisen");
+    expect(answer.text).toContain("Kiara Balling");
+    expect(answer.text).toContain("(/de/work/gute-stube)");
+  });
+
+  it("findet Texte der Leistungsseiten", () => {
+    const answer = answerLocally("Do you talk about competitors and tone?", {
+      lang: "en",
+      content,
+    });
+    expect(answer.kind).toBe("search");
+    expect(answer.text).toContain("(/en/branding)");
+  });
+
+  it("ohne Treffer bleibt es bei der ehrlichen Antwort", () => {
+    expect(answerLocally("Wie heißt deine Katze?", { lang: "de", content }).kind).toBe("fallback");
+  });
+});
+
+/* ── Unbeantwortete Fragen ──────────────────────────────────────────── */
+
+describe("Frag Achim – Protokoll unbeantworteter Fragen", () => {
+  it("macht E-Mail-Adressen, Telefonnummern und Links unkenntlich", () => {
+    expect(
+      maskPersonalData("Ich bin max@example.com, Tel. +49 170 1234567, siehe https://x.de/a"),
+    ).toBe("Ich bin [email], Tel. [nummer], siehe [link]");
   });
 });

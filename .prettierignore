@@ -5,3 +5,4 @@ web/.react-router
 web/public
 studio/dist
 studio/.sanity
+web/app/features/ask/photos.generated.ts

@@ -47,6 +47,13 @@ export const en: Dictionary = {
     bot: "Achim",
     suggestions: "Suggestions",
     thinking: "Achim is typing …",
+    enlarge: "Enlarge photo",
+    imageDialog: "Photo viewer",
+    closeImage: "Close photo",
+    prevImage: "Previous photo",
+    nextImage: "Next photo",
+    imageCounter: "Photo {n} of {total}",
+    photos: "Photos",
   },
   work: {
     title: "Work",

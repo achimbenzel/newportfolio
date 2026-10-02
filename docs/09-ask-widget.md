@@ -112,6 +112,61 @@ eingetragenes Stichwort und 2,4 Punkte. Aspekte gehen vor (außer ein allgemeine
 besser), Fachgebiete schlagen allgemeine Themen, unter 2 Punkten (oder nur ein einzelnes
 Beispiel-Wort) gibt es Vorschläge statt einer geratenen Antwort.
 
+## Gespräch & Extras
+
+### Ja/Nein und Auswahl
+
+- Ein Thema kann am Ende eine **Ja/Nein-Frage** stellen (`offer` in `knowledge.ts`): „Reist du
+  gern?“ → „… Möchtest du ein paar Bilder sehen?“ → „Ja, gerne“ zeigt die Galerie. Auch Kontakt
+  („Soll ich dir helfen, deine Anfrage vorzubereiten?“) und Off-Topic-Fragen („Soll ich dir
+  erzählen, was ich anbiete?“) bieten etwas an. „Nein“ wird freundlich beantwortet.
+- Nach einer **Rückfrage oder Vorschlagsliste** versteht der Bot „das erste“, „Nummer zwei“,
+  „the last one“ usw.
+- Angebote gelten nur für die direkt folgende Nachricht. Wörter dafür: `replyWords` in `knowledge.ts`.
+
+### Geführte Anfrage („Projekt anfragen“)
+
+Chip „Projekt anfragen“, Sätze wie „Ich möchte dich buchen“ oder „Ja“ auf das Angebot beim Kontakt
+starten drei kurze Fragen – **Art des Projekts, Zeitraum, Budget** – plus optional eine kurze
+Beschreibung. Antwortmöglichkeiten gibt es zum Anklicken, frei tippen geht immer.
+
+- Am Ende steht eine fertige Nachricht als **E-Mail- und WhatsApp-Link** (ein Klick, die Website
+  speichert und verschickt nichts).
+- Budget unter 300 € → Hinweis „ab 300 €“; ab 750 € → Hinweis auf den Call (Grenzen: `profile`).
+- „Abbrechen“ beendet die Anfrage; eine Zwischenfrage („Wie lange dauert das?“) wird beantwortet,
+  danach geht es mit der Anfrage weiter.
+- Texte und Antwortmöglichkeiten: `askTexts[lang].inquiry`, Ablauf: `inquiry.ts`.
+
+### Suche in den Website-Texten
+
+Passt kein Thema sicher, durchsucht der Bot die Texte der Website (Projektbeschreibungen,
+Leistungsseiten inkl. Ablauf-Texten) und antwortet mit einem kurzen Ausschnitt + Link:
+„Wer ist Kiara Balling?“ → Ausschnitt aus dem Projekt Gute Stube. Seltene Wörter (z. B. Namen)
+zählen mehr. Neue Inhalte sind automatisch dabei (`search.ts`).
+
+### Bildergalerien
+
+Antworten können eine Galerie zeigen (`gallery` am Thema, Beispiel: `japanPhotos`). Vorschaubilder
+erscheinen unter der Antwort, ein Klick öffnet die **Vergrößerung** (Pfeiltasten, Wischen,
+`Esc`). Bilder liegen auf dem eigenen Server (keine Anfragen an Dritte).
+
+Neue Fotos: siehe [10-anleitungen.md → Fotos für den Chat](10-anleitungen.md#fotos-für-den-chat).
+
+### Unbeantwortete Fragen sammeln (optional, standardmäßig aus)
+
+Fragen, bei denen der Bot passen musste (fallback, unsure, offTopic), können **anonym an den
+eigenen Server** gehen – damit die Wissensbasis mit echten Fragen wächst.
+
+- Browser: `log.ts` – E-Mail-Adressen, Telefonnummern und Links werden vorher unkenntlich gemacht,
+  gesendet werden nur Frage, Sprache und Art der Antwort.
+- Server: `deploy/ask-log/server.mjs` (kleiner Node-Dienst, keine Pakete) speichert je Zeile Datum
+  (ohne Uhrzeit), Sprache, Art und Frage – keine IP. nginx leitet `/api/ask-log` weiter.
+- Auswerten: `npm run ask:report -- deploy/data/ask-log.jsonl` → häufigste Fragen zuerst; dann als
+  Beispielfragen eintragen (am besten mit Claude und dem Skill `frag-achim-wissen`).
+- **Einschalten:** `logEndpoint: "/api/ask-log"` in `config.ts` – erst wenn der Dienst läuft
+  (`deploy/docker-compose.yml`) **und** die Datenschutzerklärung den Abschnitt enthält
+  ([06-datenschutz.md](06-datenschutz.md#chat-unbeantwortete-fragen-optional)).
+
 ## Dateien (`web/app/features/ask/`)
 
 | Datei               | Inhalt                                                                           |
@@ -120,10 +175,15 @@ Beispiel-Wort) gibt es Vorschläge statt einer geratenen Antwort.
 | `knowledge.test.ts` | **Testfragen** + automatische Prüfung aller Beispielfragen (`npm test`)          |
 | `engine.ts`         | Antwortlogik (Aufbereitung, Gewichtung, Entscheidung, Gedächtnis), Link-Parser   |
 | `content.ts`        | macht aus Website-Inhalten (Projekte, Leistungen) automatisch Chat-Wissen        |
+| `text.ts`           | Textaufbereitung: Normalisieren, Synonyme, Wortstamm, Tippfehler                 |
+| `inquiry.ts`        | geführte Anfrage (Fragen → fertige E-Mail/WhatsApp-Nachricht)                    |
+| `search.ts`         | Suche in den Website-Texten (letzte Rettung vor „weiß ich nicht“)                |
+| `log.ts`            | unbeantwortete Fragen anonym an den eigenen Server (optional, standardmäßig aus) |
+| `galleries.ts`      | Bildergalerien + Alternativtexte DE/EN (`photos.generated.ts` = Dateiliste)      |
 | `greeting.ts`       | Begrüßung je nach Tageszeit (zufällig, nur im Browser)                           |
 | `store.ts`          | Chat-Zustand, Gesprächsgedächtnis, Tipp-Animation (im Arbeitsspeicher)           |
 | `config.ts`         | Einstellungen (Tippgeschwindigkeit, optionales Backend)                          |
-| `AskWidget.tsx`     | Oberfläche (`TimeGreeting.tsx` = Begrüßungszeile)                                |
+| `AskWidget.tsx`     | Oberfläche (`TimeGreeting`, `ChatGallery`, `Lightbox` = Teilkomponenten)         |
 
 Dazu im Content-Layer: `web/app/content/ask.server.ts` (`getAskContent()`) sammelt beim Build alles,
 was der Chat aus den Inhalten wissen soll.
@@ -237,9 +297,9 @@ passende Themen, Vorschläge haben Beschriftungen, Synonym-Gruppen überschneide
 
 ### Woher kommen neue Fragen?
 
-Aus Gesprächen mit Kunden, E-Mails und Feedback. Das Widget speichert bewusst **nichts**
-(Datenschutz). Eine Auswertung „welche Fragen wurden nicht erkannt?“ wäre technisch möglich,
-braucht aber einen eigenen Server-Endpoint und einen Hinweis in der Datenschutzerklärung.
+Aus Gesprächen mit Kunden, E-Mails und Feedback – und, sobald eingeschaltet, aus dem Protokoll
+unbeantworteter Fragen (siehe oben, `npm run ask:report`). Ohne dieses Protokoll speichert das
+Widget **nichts**.
 
 ## Kundenprojekte im Chat
 

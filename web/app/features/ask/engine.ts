@@ -18,6 +18,19 @@ import type { AskContent } from "~/content/types";
 import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
 import { applyContent, buildContentTopics, fill, isProjectTopic, joinList } from "./content";
+import type { GalleryId } from "./galleries";
+import {
+  cancelInquiry,
+  continueInquiry,
+  repeatInquiry,
+  startInquiry,
+  type InquiryReply,
+  type InquiryState,
+} from "./inquiry";
+import { searchContent } from "./search";
+import { distance, matchesReply, normalize, prepare, registerKnownWords } from "./text";
+
+export { normalize, prepare, stem } from "./text";
 import {
   askTexts,
   defaultChips,
@@ -27,23 +40,41 @@ import {
   offTopicWords,
   profile,
   referenceWords,
-  stemExceptions,
-  synonyms,
+  replyWords,
   topics,
   type Text,
   type Topic,
 } from "./knowledge";
 
-/** Gesprächsgedächtnis: zuletzt besprochenes Fachgebiet und zuletzt gefragter Aspekt */
-export type AskContext = { subject?: string; aspect?: string };
+/** Gesprächsgedächtnis (nur im Arbeitsspeicher, nach dem Neuladen weg) */
+export type AskContext = {
+  /** zuletzt besprochenes Fachgebiet/Projekt */
+  subject?: string;
+  /** zuletzt gefragter Aspekt (Dauer, Preis …) */
+  aspect?: string;
+  /** der Bot hat eine Ja/Nein-Frage gestellt – bei „Ja“ kommt dieses Thema */
+  offer?: string;
+  /** der Bot hat eine Auswahl angeboten – „das erste“ → choices[0] */
+  choices?: string[];
+  /** laufende geführte Anfrage */
+  inquiry?: InquiryState;
+};
 
 export type AskAnswer = {
-  /** answer = Thema gefunden · clarify = Rückfrage · unsure = Vorschläge · fallback/offTopic = nichts */
-  kind: "answer" | "clarify" | "unsure" | "fallback" | "offTopic";
+  /**
+   * answer = Thema gefunden · clarify = Rückfrage · unsure = Vorschläge · search = Treffer in den
+   * Website-Texten · inquiry = geführte Anfrage · fallback/offTopic = nichts gefunden
+   */
+  kind: "answer" | "clarify" | "unsure" | "search" | "inquiry" | "fallback" | "offTopic";
   topicId: string | null;
   lang: Locale;
   text: string;
+  /** Vorschläge = Themen-IDs */
   followUps: string[];
+  /** Antwortmöglichkeiten als Text (geführte Anfrage) – werden wie getippt verschickt */
+  replies?: string[];
+  /** Bildergalerie unter der Antwort */
+  gallery?: GalleryId;
   context: AskContext;
 };
 
@@ -60,102 +91,6 @@ export type AskOptions = {
 };
 
 export type HistoryEntry = { role: "user" | "assistant"; content: string };
-
-/* ── 1. Aufbereiten ───────────────────────────────────────────────── */
-
-export const normalize = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/ß/g, "ss")
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "") // Akzente/Umlaut-Punkte entfernen: ä → a
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-/** Einfacher Wortstamm für DE + EN: Endungen kürzen, Mindestlänge 4 */
-const SUFFIXES = ["ungen", "ing", "en", "er", "es", "et", "ed", "e", "n", "s", "t"];
-const MIN_STEM = 4;
-
-export function stem(word: string): string {
-  const exception = stemExceptions[word];
-  if (exception) return exception;
-  let result = word;
-  for (let pass = 0; pass < 2; pass++) {
-    const suffix = SUFFIXES.find((s) => result.endsWith(s) && result.length - s.length >= MIN_STEM);
-    if (!suffix) break;
-    result = result.slice(0, -suffix.length);
-  }
-  return result;
-}
-
-const wordSynonyms = new Map<string, string>(); // Wortstamm → Stellvertreter
-const phraseSynonyms: { phrase: string; canonical: string }[] = []; // Mehrwort-Ausdrücke
-
-for (const group of synonyms) {
-  const canonical = stem(normalize(group[0]!));
-  for (const member of group) {
-    const normalized = normalize(member);
-    if (normalized.includes(" ")) phraseSynonyms.push({ phrase: normalized, canonical });
-    else if (!wordSynonyms.has(stem(normalized))) wordSynonyms.set(stem(normalized), canonical);
-  }
-}
-// Längere Ausdrücke zuerst ersetzen („rounds of feedback“ vor „feedback“)
-phraseSynonyms.sort((a, b) => b.phrase.length - a.phrase.length);
-
-/**
- * Kleine Tippfehler-Distanz (Damerau-Levenshtein): ein falscher, fehlender oder zusätzlicher
- * Buchstabe – oder zwei vertauschte („kontatkieren“) – zählt als 1.
- */
-function distance(a: string, b: string): number {
-  if (Math.abs(a.length - b.length) > 1) return 2;
-  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i]);
-  for (let j = 1; j <= b.length; j++) d[0]![j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      d[i]![j] = Math.min(
-        d[i - 1]![j]! + 1,
-        d[i]![j - 1]! + 1,
-        d[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1),
-      );
-      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
-        d[i]![j] = Math.min(d[i]![j]!, d[i - 2]![j - 2]! + 1);
-      }
-    }
-  }
-  return d[a.length]![b.length]!;
-}
-
-/** Tippfehler in Synonymen erkennen – nur bei längeren Wörtern, sonst gibt es Verwechslungen */
-const FUZZY_MIN = 6;
-const fuzzyKeys = [...wordSynonyms].filter(([key]) => key.length >= FUZZY_MIN);
-const fuzzyCache = new Map<string, string | undefined>();
-/** Eingetragene Stichwörter sind nie ein Tippfehler („schnitt“ ist nicht „schritt“) */
-const knownWords = new Set<string>();
-
-function fuzzySynonym(word: string): string | undefined {
-  if (word.length < FUZZY_MIN || knownWords.has(word)) return undefined;
-  if (!fuzzyCache.has(word)) {
-    fuzzyCache.set(word, fuzzyKeys.find(([key]) => distance(word, key) <= 1)?.[1]);
-  }
-  return fuzzyCache.get(word);
-}
-
-/** Bereitet Text für den Vergleich auf → Liste von Wortstämmen/Stellvertretern. */
-export function prepare(text: string, fuzzy = true): string[] {
-  let normalized = ` ${normalize(text)} `;
-  for (const { phrase, canonical } of phraseSynonyms) {
-    normalized = normalized.replaceAll(` ${phrase} `, ` ${canonical} `);
-  }
-  return normalized
-    .trim()
-    .split(" ")
-    .filter(Boolean)
-    .map((word) => {
-      const stemmed = stem(word);
-      return wordSynonyms.get(stemmed) ?? (fuzzy ? fuzzySynonym(stemmed) : undefined) ?? stemmed;
-    });
-}
 
 /* ── 2. Wissen aufbauen ───────────────────────────────────────────── */
 
@@ -188,12 +123,7 @@ function prepareKeyword(keyword: string): string[] {
     .split(GAP)
     .map((part) => prepare(part, false))
     .flatMap((part, index) => (index === 0 ? part : [GAP, ...part]));
-  for (const token of tokens) {
-    if (token !== GAP && !knownWords.has(token)) {
-      knownWords.add(token);
-      fuzzyCache.delete(token);
-    }
-  }
+  registerKnownWords(tokens.filter((token) => token !== GAP));
   return tokens;
 }
 
@@ -492,6 +422,7 @@ function build(
   context: AskContext,
   env: Env,
   topicId: string | null = null,
+  extra: Pick<AskAnswer, "replies" | "gallery"> = {},
 ): AskAnswer {
   return {
     kind,
@@ -500,7 +431,20 @@ function build(
     text: fillPlaceholders(text, env.lang, env.now),
     followUps,
     context,
+    ...extra,
   };
+}
+
+/** Nur das Langzeit-Gedächtnis behalten (Angebote/Auswahl gelten immer nur für eine Antwort) */
+const keep = ({ subject, aspect }: AskContext): AskContext => ({ subject, aspect });
+
+/** Antwort der geführten Anfrage in eine AskAnswer verpacken */
+function inquiryAnswer(reply: InquiryReply, context: AskContext, env: Env): AskAnswer {
+  const next: AskContext = { ...keep(context), inquiry: reply.state };
+  const followUps = reply.state ? [] : defaultChips;
+  return build("inquiry", reply.text, followUps, next, env, "inquiry", {
+    replies: reply.replies,
+  });
 }
 
 /** Antwort auf ein Thema (+ optional eine zweite Frage aus derselben Nachricht). */
@@ -512,6 +456,9 @@ function answerTopic(
   second?: Reply,
 ): AskAnswer {
   const { topic } = reply;
+  // „Projekt anfragen“ startet die geführte Anfrage
+  if (topic.id === "inquiry") return inquiryAnswer(startInquiry(env.lang), context, env);
+
   let text = render(reply, k, env);
   if (second) text += askTexts[env.lang].also + firstSentence(render(second, k, env));
 
@@ -521,13 +468,40 @@ function answerTopic(
     topic.followUps.length > 0 ? topic.followUps : (contextTopic?.followUps ?? defaultChips);
 
   // Gedächtnis fortschreiben
-  let next: AskContext = context;
+  let next = keep(context);
   if (topic.kind === "subject") next = { subject: topic.id };
   else if (topic.kind === "aspect")
     next = { subject: reply.subject ?? context.subject, aspect: topic.id };
   else if (topic.kind === "general") next = {};
 
-  return build("answer", text, followUps, next, env, topic.id);
+  // Ja/Nein-Angebot am Ende („Möchtest du Bilder sehen?“)
+  if (topic.offer && !second) {
+    text += ` ${topic.offer[env.lang]}`;
+    next.offer = topic.offer.yes;
+  }
+
+  return build("answer", text, followUps, next, env, topic.id, { gallery: topic.gallery });
+}
+
+const noThanks = (context: AskContext, env: Env) =>
+  build(
+    "answer",
+    pickText(askTexts[env.lang].noThanks, env.random),
+    defaultChips,
+    keep(context),
+    env,
+  );
+
+/** Welche Option der letzten Auswahl ist gemeint? („das erste“, „Nummer 2“, „the second one“) */
+function pickChoice(question: string, choices: string[]): string | undefined {
+  const words = normalize(question).split(" ");
+  if (words.length > 4) return undefined;
+  // Wörter der Reihe nach prüfen: „the second one“ → „second“ zählt, nicht „one“
+  for (const word of words) {
+    const ordinal = replyWords.ordinals.find((o) => o.words.includes(word));
+    if (ordinal) return choices.at(ordinal.index);
+  }
+  return undefined;
 }
 
 export function answerLocally(question: string, options: AskOptions): AskAnswer {
@@ -541,11 +515,52 @@ export function answerLocally(question: string, options: AskOptions): AskAnswer 
   const k = knowledgeFor(options.content);
   const context = options.context ?? {};
 
+  // Laufende geführte Anfrage: jede Nachricht ist die Antwort auf die aktuelle Frage –
+  // außer „Abbrechen“ oder eine echte Zwischenfrage („Was kostet das?“)
+  if (context.inquiry && !options.topicId) {
+    if (matchesReply(question, replyWords.cancel)) {
+      return inquiryAnswer(cancelInquiry(lang), context, env);
+    }
+    if (question.trim().endsWith("?")) {
+      const side = answerLocally(question, { ...options, context: keep(context) });
+      if (side.kind === "answer" && side.topicId !== "inquiry") {
+        const back = repeatInquiry(context.inquiry, lang);
+        return {
+          ...side,
+          text: `${side.text}\n\n${fillPlaceholders(back.text, lang, env.now)}`,
+          followUps: [],
+          replies: back.replies,
+          context: { ...keep(context), inquiry: back.state },
+        };
+      }
+    }
+    const skipped = matchesReply(question, replyWords.skip, 2);
+    return inquiryAnswer(continueInquiry(context.inquiry, question, lang, skipped), context, env);
+  }
+
   // Klick auf einen Vorschlag: Thema steht fest, Aspekte nutzen das Fachgebiet des Gesprächs
   const forced = options.topicId ? k.byId.get(options.topicId) : undefined;
   if (forced) {
     const subject = forced.kind === "aspect" ? context.subject : undefined;
     return answerTopic({ topic: forced, subject }, context, k, env);
+  }
+
+  // Antwort auf eine Auswahl-Rückfrage: „das erste“, „Nummer zwei“
+  const chosen = context.choices && pickChoice(question, context.choices);
+  const chosenTopic = chosen ? k.byId.get(chosen) : undefined;
+  if (chosenTopic) return answerTopic({ topic: chosenTopic }, context, k, env);
+
+  // Antwort auf eine Ja/Nein-Frage des Bots („Möchtest du Bilder sehen?“ → „Ja, gerne“)
+  const offered = context.offer ? k.byId.get(context.offer) : undefined;
+  if (matchesReply(question, replyWords.yes)) {
+    if (offered) return answerTopic({ topic: offered, subject: context.subject }, context, k, env);
+    if (context.choices?.length === 1) {
+      const only = k.byId.get(context.choices[0]!);
+      if (only) return answerTopic({ topic: only }, context, k, env);
+    }
+  }
+  if (matchesReply(question, replyWords.no) && (offered || context.choices)) {
+    return noThanks(context, env);
   }
 
   const tokens = prepare(question);
@@ -557,30 +572,58 @@ export function answerLocally(question: string, options: AskOptions): AskAnswer 
   // Smalltalk („Hallo“, „Wie geht’s?“) nur, wenn nichts Inhaltliches sicher erkannt wurde
   if (smallTalk && !isStrong(top)) return answerTopic({ topic: smallTalk.topic }, context, k, env);
 
+  // „Ja“/„Nein“ ohne offene Frage → freundlich weiterhelfen statt „weiß ich nicht“
+  if (!isStrong(top) && matchesReply(question, [...replyWords.yes, ...replyWords.no])) {
+    const help = k.byId.get("help");
+    if (help) return answerTopic({ topic: help }, context, k, env);
+  }
+
+  // Nichts Sicheres gefunden → in den Website-Texten suchen (Projekte, Leistungsseiten)
+  const unsure = !top || top.score < UNSURE || (!top.explicit && top.score < STRONG);
+  if (unsure) {
+    const hit = searchContent(question, options.content, lang, filler);
+    if (hit && (!top || hit.matched >= 2)) {
+      const text = fill(texts.searchHit, {
+        title: hit.title,
+        snippet: hit.snippet,
+        link: hit.link,
+      });
+      return build("search", text, defaultChips, keep(context), env);
+    }
+  }
+
   if (!top) {
     const offTopic = normalize(question)
       .split(" ")
       .some((word) => offTopicWords.includes(word));
+    const next: AskContext = offTopic ? { ...keep(context), offer: "services" } : keep(context);
     return build(
       offTopic ? "offTopic" : "fallback",
       pickText(offTopic ? texts.offTopic : texts.fallback, env.random),
       defaultChips,
-      context,
+      next,
       env,
     );
   }
 
   // Unsicher → nicht raten, sondern die naheliegendsten Themen vorschlagen
   // (zu wenig Punkte oder nur ein einzelnes Wort aus einer Beispielfrage getroffen)
-  if (top.score < UNSURE || (!top.explicit && top.score < STRONG)) {
+  if (unsure) {
     const suggestions = candidates
       .filter((entry) => label(entry.topic, lang))
       .slice(0, 3)
       .map((entry) => entry.topic.id);
     if (suggestions.length === 0) {
-      return build("fallback", pickText(texts.fallback, env.random), defaultChips, context, env);
+      return build(
+        "fallback",
+        pickText(texts.fallback, env.random),
+        defaultChips,
+        keep(context),
+        env,
+      );
     }
-    return build("unsure", pickText(texts.unsure, env.random), suggestions, context, env);
+    const next = { ...keep(context), choices: suggestions };
+    return build("unsure", pickText(texts.unsure, env.random), suggestions, next, env);
   }
 
   const normalized = normalize(question);
@@ -649,7 +692,8 @@ export function answerLocally(question: string, options: AskOptions): AskAnswer 
       a: label(main.topic, lang)!,
       b: label(rival.topic, lang)!,
     });
-    return build("clarify", text, [main.topic.id, rival.topic.id], context, env);
+    const choices = [main.topic.id, rival.topic.id];
+    return build("clarify", text, choices, { ...keep(context), choices }, env);
   }
 
   // Zweite Frage in derselben Nachricht („Wer bist du und welche Programme nutzt du?“)

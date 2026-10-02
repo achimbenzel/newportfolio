@@ -50,6 +50,7 @@ function toAskProject(raw: RawAskProject): AskProject {
     category: text(raw.category, locale),
     industry: text(raw.industry, locale) || undefined,
     summary: summarize(text(raw.description, locale)),
+    text: summarize(text(raw.description, locale), 8, 900),
   });
   return {
     slug: raw.slug,
@@ -66,12 +67,18 @@ export async function getAskProjects(): Promise<AskProject[]> {
   return ((await sanityFetch<RawAskProject[]>(askProjectsQuery)) ?? []).map(toAskProject);
 }
 
-/** Leistungsseiten: Einleitung (gekürzt) + Titel der Ablauf-Schritte, je Sprache. */
+/** Platzhalter-Texte („Inhalt folgt.“) nicht in den Chat übernehmen */
+const PLACEHOLDER_TEXTS = new Set(["Inhalt folgt.", "Coming soon."]);
+
+/** Leistungsseiten: Einleitung (gekürzt) + Ablauf-Schritte, je Sprache. */
 export async function getAskServices(): Promise<AskService[]> {
   const entry = (service: Service) => ({
     title: service.title,
     intro: summarize(service.intro, 3, 420),
     steps: service.process.map((step) => step.title).filter(Boolean),
+    details: service.process
+      .filter((step) => step.text && !PLACEHOLDER_TEXTS.has(step.text.trim()))
+      .map((step) => `${step.title}: ${summarize(step.text, 3, 300)}`),
   });
   return Promise.all(
     serviceSlugs.map(async (slug) => {

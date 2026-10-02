@@ -9,6 +9,12 @@
  */
 export const askConfig = {
   endpoint: null as string | null,
+  /**
+   * Unbeantwortete Fragen anonym an den EIGENEN Server schicken (siehe log.ts, deploy/ask-log).
+   * null = aus. Zum Einschalten "/api/ask-log" eintragen – aber erst, wenn der Dienst läuft
+   * und die Datenschutzerklärung den Abschnitt dazu enthält (docs/06-datenschutz.md).
+   */
+  logEndpoint: null as string | null,
   maxQuestionLength: 300,
   /** künstliche „Denkpause“, damit Antworten nicht unnatürlich sofort erscheinen */
   thinkingDelay: { min: 380, max: 720 },

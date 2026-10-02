@@ -14,13 +14,22 @@ import {
   type HistoryEntry,
   type RichToken,
 } from "./engine";
+import type { GalleryId } from "./galleries";
 import { askTexts } from "./knowledge";
+import { logUnanswered } from "./log";
 
 /**
- * Vorschläge unter einer Bot-Antwort (Themen-IDs).
- * chips = kleine Weiterfragen in einer Zeile · list = Auswahl bei Rückfrage/Unsicherheit
+ * Vorschläge unter einer Bot-Antwort.
+ * ids = Themen (Klick beantwortet das Thema) · replies = Antworten als Text (Klick verschickt
+ * den Text, z. B. bei der geführten Anfrage)
+ * chips = kleine Weiterfragen in einer Zeile · list = Auswahl bei Rückfrage/Unsicherheit/Anfrage
  */
-export type MessageOptions = { ids: string[]; lang: Locale; style: "chips" | "list" };
+export type MessageOptions = {
+  ids: string[];
+  replies?: string[];
+  lang: Locale;
+  style: "chips" | "list";
+};
 
 export type ChatMessage = {
   id: number;
@@ -30,6 +39,8 @@ export type ChatMessage = {
   visible: number;
   pending: boolean;
   options?: MessageOptions;
+  /** Bildergalerie unter der Antwort */
+  gallery?: { id: GalleryId; lang: Locale };
 };
 
 export type ChatState = {
@@ -139,12 +150,18 @@ export const chatStore = {
     });
     const tokens = tokenize(answer.text);
     const animate = !prefersReducedMotion();
-    const asksBack = answer.kind === "clarify" || answer.kind === "unsure";
+    const asksBack =
+      answer.kind === "clarify" || answer.kind === "unsure" || !!answer.replies?.length;
     const suggestions: MessageOptions = {
       ids: answer.followUps,
+      replies: answer.replies,
       lang: answer.lang,
       style: asksBack ? "list" : "chips",
     };
+    // Unbeantwortete Fragen (anonym, nur wenn eingeschaltet – siehe log.ts)
+    if (!options.topicId && ["fallback", "unsure", "offTopic"].includes(answer.kind)) {
+      logUnanswered(q, answer.lang, answer.kind);
+    }
 
     setState({
       messages: state.messages.map((m) =>
@@ -155,6 +172,7 @@ export const chatStore = {
               visible: animate ? 0 : tokens.length,
               pending: false,
               options: suggestions,
+              gallery: answer.gallery && { id: answer.gallery, lang: answer.lang },
             }
           : m,
       ),
