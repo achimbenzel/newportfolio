@@ -101,7 +101,7 @@ Weitere Regeln:
 | Lücken-Ausdruck passt („wie läuft \* ab“, bis zu 3 Wörter Lücke) | 3           |
 | Wort stimmt überein (nach Synonym & Wortstamm)                   | 3 × Gewicht |
 | Teil eines zusammengesetzten Worts („logo“ in „markenlogo“)      | 2 × Gewicht |
-| Tippfehler mit 1 Buchstaben Abweichung (ab 5 Zeichen)            | 2 × Gewicht |
+| Tippfehler: 1 Buchstabe anders oder Dreher (ab 5 Zeichen)        | 2 × Gewicht |
 | Wort aus einer Beispielfrage                                     | 2 × Gewicht |
 
 Gewicht = 1, wenn nur ein Thema das Wort nutzt, sonst weniger (mind. 0,35); halbiert, wenn das Wort
@@ -203,6 +203,11 @@ Wörter einer Gruppe gelten als gleich – in der Frage und in den Stichwörtern
 Ein neues Wort in die Gruppe → es funktioniert sofort bei **allen** Themen. Endungen,
 Groß-/Kleinschreibung, Umlaute und Tippfehler mit einem falschen Buchstaben werden automatisch
 angeglichen.
+
+**Tippfehler** werden zweifach abgefangen: bei Stichwörtern (ab 5 Buchstaben) und bei allen
+Synonymen (ab 6 Buchstaben, z. B. „kontatkieren“ → Kontakt). Ein falscher, fehlender oder
+zusätzlicher Buchstabe oder zwei vertauschte Buchstaben zählen als ein Fehler. Eingetragene
+Stichwörter gelten nie als Tippfehler eines anderen Worts („Schnitt“ bleibt „Schnitt“).
 
 Kürzt der Wortstamm ein Wort falsch (z. B. „Poster“ → „post“ wie ein Social-Media-Post), hilft ein
 Eintrag in `stemExceptions`.

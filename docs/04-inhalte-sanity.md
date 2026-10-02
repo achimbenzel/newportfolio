@@ -7,16 +7,33 @@
   neu gebaut werden (später automatisch per Webhook, siehe [08-roadmap.md](08-roadmap.md)).
 - Solange `SANITY_PROJECT_ID` leer ist, nutzt die Website die Platzhalter aus
   `web/app/content/fallback/` – so läuft der Prototyp ohne Konto.
+- **Projekte:** Die Platzhalter bleiben aktiv, bis in Sanity das **erste Projekt veröffentlicht**
+  ist. Danach kommen alle Projekte nur noch aus Sanity (die Platzhalter verschwinden komplett).
+  Leistungsseiten: Sanity-Text, sobald es das jeweilige Dokument gibt, sonst Platzhalter.
 
 ## Einrichtung (einmalig)
 
-1. Sanity-Projekt anlegen: <https://www.sanity.io/manage> → Projekt-ID notieren.
+1. Sanity-Projekt anlegen: <https://www.sanity.io/manage> → „Create project“, Dataset
+   `production` (öffentlich) → **Projekt-ID** notieren.
 2. `studio/.env.example` → `studio/.env` kopieren, `SANITY_STUDIO_PROJECT_ID` eintragen.
 3. `web/.env.example` → `web/.env` kopieren, `SANITY_PROJECT_ID` eintragen.
-4. In Sanity unter **API → CORS origins** `http://localhost:3333` erlauben.
-5. `npm run studio` → <http://localhost:3333>
+4. In Sanity unter **API → CORS origins** `http://localhost:3333` erlauben („Allow credentials“).
+5. `npm install` (einmalig) und `npm run studio` → <http://localhost:3333> → mit dem Sanity-Konto anmelden.
 
 Studio online stellen (optional): `npm run studio:deploy` → `https://<host>.sanity.studio`.
+
+## Erstes Projekt veröffentlichen
+
+1. Im Studio links **Projekte → „+“**.
+2. Pflichtfelder (rot markiert): **Titel**, **URL-Slug** („Generate“ klicken), **Titelbild** mit
+   Alternativtext, **Beschreibung**, unter „Eckdaten“ **Kategorie** und **Jahr**. Englisch ist
+   optional – fehlt es, zeigt die englische Seite den deutschen Text.
+3. Empfohlen: Kunde, Branche, Umfang, Software und **Stichwörter für „Frag Achim“**; Bilder,
+   Texte und Videos als **Inhaltsblöcke**.
+4. **Publish** klicken.
+5. Ansehen: `npm run dev` → <http://localhost:5173/de/work> (holt die Daten live).
+6. Live stellen: `npm run build` und den Ordner `web/build/client` auf den Server laden
+   (bis der automatische Rebuild per Webhook eingerichtet ist, siehe [08-roadmap.md](08-roadmap.md)).
 
 ## Content-Modell (Entwurf v0)
 

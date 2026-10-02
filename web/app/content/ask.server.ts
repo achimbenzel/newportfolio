@@ -8,9 +8,10 @@
  */
 import { serviceSlugs } from "~/config/services";
 import type { Locale } from "~/i18n/config";
-import { isSanityConfigured, sanityFetch } from "~/lib/sanity/client.server";
+import { sanityFetch } from "~/lib/sanity/client.server";
 import { askProjectsQuery } from "~/lib/sanity/queries";
 import { fallbackProjects } from "./fallback/projects";
+import { usesSanityProjects } from "./project-slugs.server";
 import { getService } from "./services.server";
 import type { AskContent, AskProject, AskService, Service } from "./types";
 
@@ -61,7 +62,7 @@ function toAskProject(raw: RawAskProject): AskProject {
 }
 
 export async function getAskProjects(): Promise<AskProject[]> {
-  if (!isSanityConfigured) return fallbackProjects.map(toAskProject);
+  if (!(await usesSanityProjects())) return fallbackProjects.map(toAskProject);
   return ((await sanityFetch<RawAskProject[]>(askProjectsQuery)) ?? []).map(toAskProject);
 }
 

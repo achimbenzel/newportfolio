@@ -3,14 +3,12 @@ import {
   useId,
   useRef,
   useState,
-  useSyncExternalStore,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { Logo } from "~/components/brand/Logo";
 import { Icon } from "~/components/ui/Icon";
-import { site } from "~/config/site";
 import { serviceSlugs } from "~/config/services";
 import { useLocale, useT } from "~/i18n";
 import { paths } from "~/lib/paths";
@@ -19,29 +17,18 @@ import styles from "./Header.module.css";
 
 type Panel = "services" | "menu";
 
-/* Scroll-Zustand als External Store – kein setState im Effect nötig */
-function subscribeScroll(callback: () => void) {
-  window.addEventListener("scroll", callback, { passive: true });
-  return () => window.removeEventListener("scroll", callback);
-}
-const useScrolled = () =>
-  useSyncExternalStore(
-    subscribeScroll,
-    () => window.scrollY > 16,
-    () => false,
-  );
-
 /**
- * Schwebende Header-„Insel“.
- * - Desktop: Links in einer Zeile, „Leistungen“ klappt die Insel weich nach unten auf.
- * - Mobil:   Menü-Button, die Insel wächst zum Vollmenü mit gestaffelten Links.
+ * Schwebende Header-„Insel“ – Gestaltung wie auf der alten Seite (achimbenzel.com):
+ * - Desktop (ab 1100 px): breite Leiste, Links rechts, Sprach-Button; „Leistungen“ klappt
+ *   die Insel weich nach unten auf (Karten der drei Leistungsseiten).
+ * - Mobil/Tablet: schmale Insel mit Logo + Menü-Button; die Insel wächst zum Menü mit
+ *   gestaffelt einblendenden Links, darunter der Sprach-Button.
  * Die Animation ist reines CSS (grid-template-rows 0fr → 1fr), siehe Header.module.css.
  */
 export function Header() {
   const t = useT();
   const locale = useLocale();
   const { pathname } = useLocation();
-  const scrolled = useScrolled();
   const servicesId = useId();
   const menuId = useId();
   const islandRef = useRef<HTMLDivElement>(null);
@@ -99,13 +86,15 @@ export function Header() {
   const navClass = ({ isActive }: { isActive: boolean }) =>
     [styles.navItem, isActive && styles.active].filter(Boolean).join(" ");
 
+  /** Laufende Nummer für das gestaffelte Einblenden im mobilen Menü */
+  const stagger = (index: number) => ({ "--i": index }) as CSSProperties;
+
   return (
     <header className={styles.header}>
       <div
         ref={islandRef}
         className={styles.island}
         data-open={panel ?? undefined}
-        data-scrolled={scrolled || undefined}
         onPointerLeave={hoverClose}
         onPointerEnter={cancelHoverClose}
       >
@@ -140,7 +129,7 @@ export function Header() {
           </nav>
 
           <div className={styles.tools}>
-            <LanguageSwitch />
+            <LanguageSwitch className={styles.desktopOnly} />
             <button
               type="button"
               className={styles.menuButton}
@@ -149,7 +138,11 @@ export function Header() {
               aria-label={panel === "menu" ? t.a11y.closeMenu : t.a11y.openMenu}
               onClick={() => toggle("menu")}
             >
-              <span className={styles.menuIcon} aria-hidden="true" />
+              <svg viewBox="0 0 24 24" className={styles.menuIcon} aria-hidden="true">
+                <line x1="5" y1="7" x2="19" y2="7" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <line x1="5" y1="17" x2="19" y2="17" />
+              </svg>
             </button>
           </div>
         </div>
@@ -160,7 +153,7 @@ export function Header() {
             {/* Desktop: Leistungen */}
             <ul id={servicesId} className={styles.services} role="list">
               {serviceSlugs.map((slug, index) => (
-                <li key={slug} className={styles.stagger} style={{ "--i": index } as CSSProperties}>
+                <li key={slug} className={styles.stagger} style={stagger(index)}>
                   <Link to={paths.service(locale, slug)} className={styles.serviceCard}>
                     <span className={styles.serviceIndex}>0{index + 1}</span>
                     <span className={styles.serviceTitle}>{t.services[slug].title}</span>
@@ -171,49 +164,32 @@ export function Header() {
               ))}
             </ul>
 
-            {/* Mobil: komplettes Menü */}
+            {/* Mobil: komplettes Menü als einfache Liste (wie alte Seite) */}
             <nav id={menuId} className={styles.menu} aria-label={t.a11y.mainNav}>
-              <p
-                className={`${styles.menuLabel} ${styles.stagger}`}
-                style={{ "--i": 0 } as CSSProperties}
-              >
+              <p className={`${styles.menuLabel} ${styles.stagger}`} style={stagger(0)}>
                 {t.nav.services}
               </p>
-              <ul className={styles.menuServices} role="list">
+              <ul role="list">
                 {serviceSlugs.map((slug, index) => (
-                  <li
-                    key={slug}
-                    className={styles.stagger}
-                    style={{ "--i": index + 1 } as CSSProperties}
-                  >
-                    <Link to={paths.service(locale, slug)} className={styles.menuServiceLink}>
+                  <li key={slug} className={styles.stagger} style={stagger(index + 1)}>
+                    <NavLink to={paths.service(locale, slug)} className={styles.menuLink}>
                       {t.services[slug].title}
-                      <Icon name="arrowUpRight" size={16} />
-                    </Link>
+                    </NavLink>
                   </li>
                 ))}
               </ul>
-              <ul className={styles.menuPages} role="list">
+              <ul role="list" className={styles.menuPages}>
                 {pageLinks.map((link, index) => (
-                  <li
-                    key={link.to}
-                    className={styles.stagger}
-                    style={{ "--i": index + 4 } as CSSProperties}
-                  >
+                  <li key={link.to} className={styles.stagger} style={stagger(index + 4)}>
                     <NavLink to={link.to} className={styles.menuLink}>
                       {link.label}
                     </NavLink>
                   </li>
                 ))}
               </ul>
-              <a
-                href={`mailto:${site.email}`}
-                className={`${styles.menuMail} ${styles.stagger}`}
-                style={{ "--i": 8 } as CSSProperties}
-              >
-                <Icon name="mail" size={16} />
-                {site.email}
-              </a>
+              <div className={`${styles.menuFooter} ${styles.stagger}`} style={stagger(7)}>
+                <LanguageSwitch className={styles.menuSwitch} />
+              </div>
             </nav>
           </div>
         </div>

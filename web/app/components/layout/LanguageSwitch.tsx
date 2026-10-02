@@ -3,34 +3,33 @@ import { localeMeta, locales, useLocale, useT } from "~/i18n";
 import { switchLocale } from "~/lib/paths";
 import styles from "./LanguageSwitch.module.css";
 
-/** DE | EN – wechselt auf dieselbe Seite in der anderen Sprache. */
-export function LanguageSwitch({ onNavigate }: { onNavigate?: () => void }) {
+/**
+ * Sprachwechsel wie auf der alten Seite: ein kleiner Button mit der ANDEREN Sprache
+ * („EN“ auf deutschen Seiten) – wechselt auf dieselbe Seite in der anderen Sprache.
+ */
+export function LanguageSwitch({
+  onNavigate,
+  className,
+}: {
+  onNavigate?: () => void;
+  className?: string;
+}) {
   const locale = useLocale();
   const t = useT();
   const { pathname } = useLocation();
+  const other = locales.find((l) => l !== locale) ?? locale;
 
   return (
-    <div
-      className={styles.switch}
-      role="group"
-      aria-label={t.a11y.languageSwitch}
-      data-active={locale}
+    <Link
+      to={switchLocale(pathname, other)}
+      lang={other}
+      hrefLang={other}
+      aria-label={`${t.a11y.languageSwitch}: ${localeMeta[other].name}`}
+      title={localeMeta[other].name}
+      className={[styles.switch, className].filter(Boolean).join(" ")}
+      onClick={onNavigate}
     >
-      <span className={styles.indicator} aria-hidden="true" />
-      {locales.map((l) => (
-        <Link
-          key={l}
-          to={switchLocale(pathname, l)}
-          lang={l}
-          hrefLang={l}
-          aria-label={localeMeta[l].name}
-          aria-current={l === locale ? "true" : undefined}
-          className={styles.option}
-          onClick={onNavigate}
-        >
-          {localeMeta[l].label}
-        </Link>
-      ))}
-    </div>
+      {localeMeta[other].label}
+    </Link>
   );
 }

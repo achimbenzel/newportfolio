@@ -71,7 +71,7 @@ Transparente Akzentflächen: `rgb(var(--color-accent-rgb) / 0.16)`.
 
 | Komponente       | Datei                                  | Hinweis                                                                  |
 | ---------------- | -------------------------------------- | ------------------------------------------------------------------------ |
-| Header („Insel“) | `components/layout/Header.tsx`         | schwebend, Desktop: „Leistungen“ klappt auf; Mobil: Vollmenü             |
+| Header („Insel“) | `components/layout/Header.tsx`         | wie alte Seite; Desktop: „Leistungen“ klappt auf; Mobil: Menü-Liste      |
 | Sprachwechsel    | `components/layout/LanguageSwitch.tsx` | DE/EN-Pille mit gleitendem Indikator                                     |
 | Footer           | `components/layout/Footer.tsx`         | CTA, Navigation, Rechtliches, Cookie-Einstellungen                       |
 | Button           | `components/ui/Button.tsx`             | `ButtonLink` (intern), `ButtonAnchor` (extern/mailto), `Button`          |
@@ -85,8 +85,14 @@ Transparente Akzentflächen: `rgb(var(--color-accent-rgb) / 0.16)`.
 
 ## Header-Verhalten
 
-- Beim ersten Laden fliegt die Insel weich von oben ein (läuft auch ohne JavaScript).
-- **Desktop (≥ 960 px):** Hover/Klick auf „Leistungen“ lässt die Insel nach unten wachsen und zeigt
-  die drei Leistungen als Karten. Schließt bei Mausverlassen, `Esc`, Klick außerhalb, Navigation.
-- **Mobil:** Menü-Button → Insel wächst zum Vollmenü, Links blenden gestaffelt ein.
+Gestaltet wie der Header der alten Seite (achimbenzel.com): dunkle Glas-Insel (`--color-nav`,
+Blur 20px), 1px heller Rand (`--color-nav-border`), Radius 16px, Logo 1.85rem hoch.
+
+- Beim ersten Laden fährt die Insel von oben ein (läuft auch ohne JavaScript).
+- **Desktop (≥ 1100 px):** breite Leiste (8vw Rand, max. 1400px), Links rechts, daneben der
+  Sprach-Button („EN“ auf deutschen Seiten). Hover/Klick auf „Leistungen“ lässt die Insel nach
+  unten wachsen und zeigt die drei Leistungen als Karten. Schließt bei Mausverlassen, `Esc`,
+  Klick außerhalb, Navigation.
+- **Mobil/Tablet:** schmale Insel (max. 680px) mit Logo und Petrol-Menü-Button (drei Linien → X).
+  Die Insel wächst zum Menü (deckend), Links blenden gestaffelt ein, darunter der Sprach-Button.
 - Technik: `grid-template-rows: 0fr → 1fr` (Höhe animieren ohne JS-Messung) + `--i`-Staffelung.

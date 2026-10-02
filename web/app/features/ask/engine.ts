@@ -103,8 +103,46 @@ for (const group of synonyms) {
 // Längere Ausdrücke zuerst ersetzen („rounds of feedback“ vor „feedback“)
 phraseSynonyms.sort((a, b) => b.phrase.length - a.phrase.length);
 
+/**
+ * Kleine Tippfehler-Distanz (Damerau-Levenshtein): ein falscher, fehlender oder zusätzlicher
+ * Buchstabe – oder zwei vertauschte („kontatkieren“) – zählt als 1.
+ */
+function distance(a: string, b: string): number {
+  if (Math.abs(a.length - b.length) > 1) return 2;
+  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0]![j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      d[i]![j] = Math.min(
+        d[i - 1]![j]! + 1,
+        d[i]![j - 1]! + 1,
+        d[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i]![j] = Math.min(d[i]![j]!, d[i - 2]![j - 2]! + 1);
+      }
+    }
+  }
+  return d[a.length]![b.length]!;
+}
+
+/** Tippfehler in Synonymen erkennen – nur bei längeren Wörtern, sonst gibt es Verwechslungen */
+const FUZZY_MIN = 6;
+const fuzzyKeys = [...wordSynonyms].filter(([key]) => key.length >= FUZZY_MIN);
+const fuzzyCache = new Map<string, string | undefined>();
+/** Eingetragene Stichwörter sind nie ein Tippfehler („schnitt“ ist nicht „schritt“) */
+const knownWords = new Set<string>();
+
+function fuzzySynonym(word: string): string | undefined {
+  if (word.length < FUZZY_MIN || knownWords.has(word)) return undefined;
+  if (!fuzzyCache.has(word)) {
+    fuzzyCache.set(word, fuzzyKeys.find(([key]) => distance(word, key) <= 1)?.[1]);
+  }
+  return fuzzyCache.get(word);
+}
+
 /** Bereitet Text für den Vergleich auf → Liste von Wortstämmen/Stellvertretern. */
-export function prepare(text: string): string[] {
+export function prepare(text: string, fuzzy = true): string[] {
   let normalized = ` ${normalize(text)} `;
   for (const { phrase, canonical } of phraseSynonyms) {
     normalized = normalized.replaceAll(` ${phrase} `, ` ${canonical} `);
@@ -115,7 +153,7 @@ export function prepare(text: string): string[] {
     .filter(Boolean)
     .map((word) => {
       const stemmed = stem(word);
-      return wordSynonyms.get(stemmed) ?? stemmed;
+      return wordSynonyms.get(stemmed) ?? (fuzzy ? fuzzySynonym(stemmed) : undefined) ?? stemmed;
     });
 }
 
@@ -138,18 +176,26 @@ type Knowledge = {
   weights: Map<string, number>;
 };
 
-const filler = new Set(fillerWords.flatMap(prepare));
+const filler = new Set(fillerWords.flatMap((word) => prepare(word, false)));
 
 /** Lücke in einem Stichwort („wie läuft * ab“) – steht für 0 bis MAX_GAP Wörter */
 const GAP = "*";
 const MAX_GAP = 3;
 
-/** Stichwort aufbereiten; `*` bleibt als Lücke erhalten */
-const prepareKeyword = (keyword: string) =>
-  keyword
+/** Stichwort aufbereiten (ohne Tippfehler-Suche); `*` bleibt als Lücke erhalten */
+function prepareKeyword(keyword: string): string[] {
+  const tokens = keyword
     .split(GAP)
-    .map((part) => prepare(part))
+    .map((part) => prepare(part, false))
     .flatMap((part, index) => (index === 0 ? part : [GAP, ...part]));
+  for (const token of tokens) {
+    if (token !== GAP && !knownWords.has(token)) {
+      knownWords.add(token);
+      fuzzyCache.delete(token);
+    }
+  }
+  return tokens;
+}
 
 function buildKnowledge(all: Topic[]): Knowledge {
   const explicit = all.map((topic) => {
@@ -174,7 +220,7 @@ function buildKnowledge(all: Topic[]): Knowledge {
     const examples = topic.examples ? [...topic.examples.de, ...topic.examples.en] : [];
     const derived = new Set(
       examples
-        .flatMap(prepare)
+        .flatMap((example) => prepare(example, false))
         .filter(
           (word) => word.length >= 3 && !filler.has(word) && !words.has(word) && !owners.has(word),
         ),
@@ -229,23 +275,6 @@ const CLOSE = 0.85;
 const SECOND = 0.7;
 /** so viel besser muss ein allgemeines Thema sein, um ein sicheres Fachgebiet zu schlagen */
 const GENERAL_LEAD = 1.5;
-
-/** Kleine Levenshtein-Distanz – reicht, um Tippfehler wie „brandign“ zu erkennen. */
-function distance(a: string, b: string): number {
-  if (Math.abs(a.length - b.length) > 1) return 2;
-  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i]);
-  for (let j = 1; j <= b.length; j++) d[0]![j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      d[i]![j] = Math.min(
-        d[i - 1]![j]! + 1,
-        d[i]![j - 1]! + 1,
-        d[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1),
-      );
-    }
-  }
-  return d[a.length]![b.length]!;
-}
 
 /**
  * Passt der Ausdruck ab Position `t`? Lücken überspringen bis zu MAX_GAP Wörter.

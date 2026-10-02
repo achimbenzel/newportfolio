@@ -13,7 +13,10 @@
   --color-bg-sunken: #0c0c0e; /* tiefer liegende Flächen */
   --color-surface: #18181c; /* Karten, Panels */
   --color-surface-raised: #202024; /* Hover, Inputs */
-  --color-glass: rgb(30 30 34 / 0.72); /* Header-Insel, Overlays (mit Blur) */
+  --color-glass: rgb(30 30 34 / 0.72); /* Overlays (mit Blur) */
+  --color-nav: rgb(38 38 38 / 0.88); /* Header-Insel (wie alte Seite, mit Blur) */
+  --color-nav-open: rgb(38 38 38); /* aufgeklappt: deckend, Inhalte dahinter nicht lesbar */
+  --color-nav-border: rgb(255 255 255 / 0.1);
 
   /* ── Farben: Text ────────────────────────────────────────── */
   --color-text: #e8eaf0; /* Haupttext            15.7:1 */

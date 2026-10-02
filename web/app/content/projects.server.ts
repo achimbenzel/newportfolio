@@ -1,12 +1,14 @@
 /**
  * Projekte – Content-Zugriff. Routen holen Projektdaten AUSSCHLIESSLICH hier.
- * Quelle: Sanity (wenn konfiguriert), sonst Platzhalter aus ./fallback.
+ * Quelle: Sanity (sobald dort mindestens ein Projekt veröffentlicht ist), sonst Platzhalter
+ * aus ./fallback – siehe usesSanityProjects().
  */
 import type { Locale } from "~/i18n/config";
-import { isSanityConfigured, sanityFetch } from "~/lib/sanity/client.server";
+import { sanityFetch } from "~/lib/sanity/client.server";
 import { localImage, type SanityImageInput } from "~/lib/sanity/media.server";
 import { featuredProjectsQuery, projectQuery, projectsQuery } from "~/lib/sanity/queries";
 import { fallbackProjects, type FallbackProject } from "./fallback/projects";
+import { usesSanityProjects } from "./project-slugs.server";
 import { pick } from "~/lib/l10n";
 import type { Project, ProjectBlock, ProjectSummary } from "./types";
 
@@ -96,14 +98,14 @@ function fallbackProject(p: FallbackProject, locale: Locale): Project {
 /* ── Öffentliche API ─────────────────────────────────────────────── */
 
 export async function getProjects(locale: Locale): Promise<ProjectSummary[]> {
-  if (!isSanityConfigured) return fallbackProjects.map((p) => fallbackSummary(p, locale));
+  if (!(await usesSanityProjects())) return fallbackProjects.map((p) => fallbackSummary(p, locale));
   const raw = (await sanityFetch<RawSummary[]>(projectsQuery, { locale })) ?? [];
   return Promise.all(raw.map(toSummary));
 }
 
 /** Projekte mit „Auf der Startseite zeigen“ – aktuell nicht eingebunden (Startseite zeigt vorerst nur den Chat). */
 export async function getFeaturedProjects(locale: Locale, limit = 3): Promise<ProjectSummary[]> {
-  if (!isSanityConfigured) {
+  if (!(await usesSanityProjects())) {
     return fallbackProjects
       .filter((p) => p.featured)
       .slice(0, limit)
@@ -114,7 +116,7 @@ export async function getFeaturedProjects(locale: Locale, limit = 3): Promise<Pr
 }
 
 export async function getProject(locale: Locale, slug: string): Promise<Project | null> {
-  if (!isSanityConfigured) {
+  if (!(await usesSanityProjects())) {
     const p = fallbackProjects.find((item) => item.slug === slug);
     return p ? fallbackProject(p, locale) : null;
   }
