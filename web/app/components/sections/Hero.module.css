@@ -19,7 +19,8 @@
   }
 }
 
-/* oben leicht abdunkeln (Header, Begrüßung), unten weich in die dunkle Seite übergehen */
+/* oben abdunkeln (Header, Begrüßung – das Motiv ist hell und kleinteilig),
+   unten weich in die dunkle Seite übergehen */
 .hero::before {
   content: "";
   position: absolute;
@@ -27,9 +28,9 @@
   z-index: -1;
   background: linear-gradient(
     to bottom,
-    rgb(0 0 0 / 0.28) 0%,
-    rgb(0 0 0 / 0.08) 30%,
-    rgb(0 0 0 / 0) 70%,
+    rgb(0 0 0 / 0.34) 0%,
+    rgb(0 0 0 / 0.22) 35%,
+    rgb(0 0 0 / 0.08) 65%,
     rgb(var(--color-bg-rgb) / 0.6) 92%,
     var(--color-bg) 100%
   );

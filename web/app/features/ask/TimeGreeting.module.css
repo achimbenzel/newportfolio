@@ -42,13 +42,17 @@
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--color-on-accent);
-  text-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
+  text-shadow:
+    0 1px 3px rgb(0 0 0 / 0.45),
+    0 2px 28px rgb(0 0 0 / 0.55);
 }
 
 .prompt {
   font-size: var(--text-lg);
   color: rgb(255 255 255 / 0.92);
-  text-shadow: 0 1px 16px rgb(0 0 0 / 0.4);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.55),
+    0 1px 18px rgb(0 0 0 / 0.6);
 }
 
 @media (max-width: 600px) {

@@ -85,9 +85,11 @@ Transparente Akzentflächen: `rgb(var(--color-accent-rgb) / 0.16)`.
 
 ## Startseite: Foto + helles Chatfenster
 
-- **Hintergrund:** eigenes, stilisiertes Japan-Motiv (Kyoto, Raster-Look) vollflächig hinter Hero
-  und Header (`components/sections/Hero.module.css`), oben leicht abgedunkelt, unten weicher
-  Übergang in `--color-bg`. Quelle `assets/photos/backgrounds/japan.jpg` → `npm run photos` →
+- **Hintergrund:** eigenes, gemaltes Japan-Motiv (Kyoto, Kiyomizu-dera) vollflächig hinter Hero
+  und Header (`components/sections/Hero.module.css`), oben abgedunkelt (das Motiv ist hell und
+  kleinteilig – die Begrüßung hat zusätzlich einen kräftigen Textschatten), unten weicher
+  Übergang in `--color-bg`. Bild tauschen: neue Datei als
+  `assets/photos/backgrounds/japan.jpg` ablegen → `npm run photos` →
   `web/public/images/hero/japan-1280|2560|3840.webp` (Liste `HERO_IMAGES` in
   `web/scripts/photos.mjs`), per `links()` in `routes/home.tsx` vorgeladen.
 - **Chatfenster:** fast deckende weiße Fläche `--glass-light` (Weiß 95 %) mit breitem,
