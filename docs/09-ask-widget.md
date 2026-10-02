@@ -20,7 +20,10 @@ passende Antwort. Dafür nutzt es ein paar Techniken, die es trotzdem „gesprä
 - Sobald gefragt wird, klappt der Verlauf **im selben Fenster über dem Eingabefeld** auf.
 - Chat-Bubbles: Achims Antworten **links** (dunkle Bubble, Avatar = Bildmarke `LogoMark3D`),
   die Fragen der Besucher **rechts** (Petrol-Bubble).
-- Darunter Vorschläge (passen sich nach jeder Antwort an), darüber „Neuer Chat“ / „Schließen“.
+- **Vorschläge im Fenster:** vor dem ersten Gespräch als Zeile unter dem Eingabefeld, danach unter
+  der jeweils letzten Antwort (passen sich an). Fragt der Bot zurück („Meinst du …?“) oder ist er
+  unsicher, stehen die Auswahlmöglichkeiten als klickbare Liste direkt unter seiner Nachricht.
+- Über dem Fenster „Neuer Chat“ / „Schließen“, sobald es einen Verlauf gibt.
 
 ## Persönlichkeit
 
@@ -137,11 +140,11 @@ Deutsch und Englisch.** Dafür gibt es zwei Wege:
 
 **Bereits automatisch angebunden** (kein Eintrag in `knowledge.ts` nötig):
 
-| Inhalt                   | Was der Chat daraus macht                                                             |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| Projekte                 | eigenes Thema je Projekt, Projektliste (auch je Fachgebiet), Branchen-Themen          |
-| Leistungsseiten          | Einleitung = Antwort zu Branding/Motion/Musik, Ablauf-Schritte = Antwort „Ablauf“     |
-| Social-Profile, WhatsApp | aus `config/site.ts` über Platzhalter (`{socials}`, `{social:behance}`, `{whatsapp}`) |
+| Inhalt                   | Was der Chat daraus macht                                                                 |
+| ------------------------ | ----------------------------------------------------------------------------------------- |
+| Projekte                 | eigenes Thema je Projekt, Projektliste (auch je Fachgebiet), Branchen-Themen              |
+| Leistungsseiten          | Einleitung = Antwort zu Branding/Motion/Musik, Ablauf-Schritte = „Wie läuft Branding ab?“ |
+| Social-Profile, WhatsApp | aus `config/site.ts` über Platzhalter (`{socials}`, `{social:behance}`, `{whatsapp}`)     |
 
 **Neue Seite oder neue Inhaltsart, die Wissen enthält** (z. B. „Über mich“-Text, FAQ, Preise,
 Testimonials) – immer mitdenken:

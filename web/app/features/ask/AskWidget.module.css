@@ -146,16 +146,22 @@
 
 /* ── Nachrichten als Chat-Bubbles: Achim links, Besucher rechts ─── */
 .message {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--space-2);
   margin-top: var(--space-3);
   animation: message-in-left 0.5s var(--ease-out) both;
 }
 
 .message[data-from="user"] {
-  justify-content: flex-end;
   animation-name: message-in-right;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.message[data-from="user"] .row {
+  justify-content: flex-end;
 }
 
 @keyframes message-in-left {
@@ -351,42 +357,100 @@
   background: rgb(255 255 255 / 0.08);
 }
 
-/* ── Vorschläge unter dem Fenster ───────────────────────────────── */
-.chips {
+/* ── Vorschläge im Fenster ──────────────────────────────────────── */
+/* vor dem ersten Gespräch: Zeile unter dem Eingabefeld */
+.starters {
+  min-width: 0;
+  padding: 0 var(--space-5) var(--space-3);
+}
+
+/* unter der letzten Antwort: eingerückt auf Höhe der Bubble (Avatar 28px + Abstand),
+   als Gruppe eingeblendet (einzeln animierte Buttons hinterlassen in Chromium Malfehler) */
+.message .options {
+  margin: var(--space-2) 0 0 calc(28px + var(--space-2));
+  animation: options-in 0.45s var(--ease-out) backwards;
+}
+
+.message .option {
+  animation: none;
+}
+
+@keyframes options-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.options {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
-  padding: var(--space-4) var(--space-5) 0;
+  gap: var(--space-2);
 }
 
-.chip {
-  padding: 2px 0;
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.35rem 0.8rem;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
-  transition: color var(--duration-fast);
-  animation: message-in 0.5s var(--ease-out) both;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  transition:
+    color var(--duration-fast),
+    border-color var(--duration-fast),
+    background var(--duration-fast);
+  animation: message-in 0.45s var(--ease-out) both;
 }
 
-.chip:nth-child(2) {
+.option:hover {
+  color: var(--color-text);
+  border-color: rgb(var(--color-neon-rgb) / 0.6);
+  background: rgb(var(--color-neon-rgb) / 0.06);
+}
+
+.option:nth-child(2) {
   animation-delay: 0.04s;
 }
-.chip:nth-child(3) {
+.option:nth-child(3) {
   animation-delay: 0.08s;
 }
-.chip:nth-child(4) {
+.option:nth-child(4) {
   animation-delay: 0.12s;
 }
-.chip:nth-child(5) {
+.option:nth-child(5) {
   animation-delay: 0.16s;
 }
 
-.chip:hover:not(:disabled) {
-  color: var(--color-text);
+/* Rückfrage / Unsicherheit: Auswahl als Liste untereinander */
+.options[data-style="list"] {
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.chip:disabled {
-  cursor: default;
-  opacity: 0.6;
+.options[data-style="list"] .option {
+  justify-content: space-between;
+  min-width: min(100%, 260px);
+  padding: 0.55rem 0.95rem;
+  color: var(--color-text);
+  border-radius: 14px;
+  background: var(--color-surface-raised);
+  border-color: transparent;
+}
+
+.options[data-style="list"] .option:hover {
+  border-color: rgb(var(--color-neon-rgb) / 0.6);
+}
+
+.optionIcon {
+  flex: none;
+  color: var(--color-text-subtle);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.option:hover .optionIcon {
+  transform: translateX(2px);
+  color: var(--color-neon);
 }
 
 @media (max-width: 600px) {
@@ -402,18 +466,24 @@
   .log {
     padding-inline: var(--space-4);
   }
-  .chips {
+  .starters {
+    padding-inline: var(--space-4);
+  }
+  /* Startvorschläge: eine Zeile, seitlich wischbar */
+  .starters .options {
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
-    padding-inline: var(--space-4);
-    mask-image: linear-gradient(90deg, #000 85%, transparent);
+    mask-image: linear-gradient(90deg, black 85%, transparent);
   }
-  .chips::-webkit-scrollbar {
+  .starters .options::-webkit-scrollbar {
     display: none;
   }
-  .chip {
+  .starters .option {
     flex: none;
+  }
+  .message .options {
+    margin-left: 0;
   }
 }
 

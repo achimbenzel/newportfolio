@@ -7,8 +7,8 @@
  *                 Die Kategorie ordnet das Projekt einem Fachgebiet zu (für Dauer, Ablauf …).
  * - Branchen      „Hast du was für Gastronomie gemacht?“ → passende Projekte
  * - Projektliste  „Welche Projekte hast du gemacht?“ → Thema „work“, je Fachgebiet gefiltert
- * - Leistungen    Einleitung + Ablauf der Leistungsseiten ersetzen die festen Antworten
- *                 von branding/motion/music und die Ablauf-Antworten (process)
+ * - Leistungen    Einleitung der Leistungsseiten ersetzt die festen Antworten von
+ *                 branding/motion/music, ihre Ablauf-Schritte die Facetten von „process“
  *
  * Neue Inhaltsart? → Daten in content/ask.server.ts holen, hier in Themen übersetzen.
  */
@@ -207,24 +207,14 @@ export function applyContent(topics: Topic[], { projects, services }: AskContent
       return { ...topic, de: { ...topic.de, a: answer.de }, en: { ...topic.en, a: answer.en } };
     }
 
-    // Ablauf: Schritte der Leistungsseiten
+    // Ablauf: Gestaltungsschritte der Leistungsseiten je Fachgebiet („Wie läuft Branding ab?“) –
+    // der allgemeine Projektablauf bleibt die feste Antwort aus knowledge.ts
     if (topic.id === "process") {
       const withSteps = services.filter((s) => s.de.steps.length > 0);
       if (withSteps.length === 0) return topic;
       const facets = { ...topic.facets };
       for (const s of withSteps) facets[serviceSubjects[s.slug]] = byLocale((l) => stepsText(s, l));
-      const answer = byLocale((lang) =>
-        [
-          askTexts[lang].processIntro,
-          ...withSteps.map((s) => `${s[lang].title}: ${s[lang].steps.join(", ")}.`),
-        ].join("\n"),
-      );
-      return {
-        ...topic,
-        facets,
-        de: { ...topic.de, a: answer.de },
-        en: { ...topic.en, a: answer.en },
-      };
+      return { ...topic, facets };
     }
 
     // Projektliste – insgesamt und je Fachgebiet („Welche Logo-Projekte …?“)

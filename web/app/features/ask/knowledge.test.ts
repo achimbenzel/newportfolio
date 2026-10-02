@@ -281,6 +281,13 @@ describe("Frag Achim – Inhalte", () => {
     }
   });
 
+  it("Tee: einfach gern, nicht „zu viel“", () => {
+    for (const q of ["Was ist dein Lieblingstee?", "Was machst du in deiner Freizeit?"]) {
+      expect(answerLocally(q, { lang: "de" }).text).not.toContain("zu viel");
+      expect(answerLocally(q, { lang: "en" }).text).not.toContain("too much");
+    }
+  });
+
   it("Varianten werden zufällig gewählt", () => {
     const first = answerLocally("Hallo", { lang: "de", random: () => 0 }).text;
     const last = answerLocally("Hallo", { lang: "de", random: () => 0.99 }).text;
@@ -570,6 +577,15 @@ describe("Frag Achim – Leistungsseiten", () => {
     expect(answer.text).toBe(
       "Neue Einleitung aus dem CMS. Mehr unter [Brand & Logo Design](/de/branding).",
     );
+  });
+
+  it("„Wie funktioniert ein Projekt?“ erklärt den ganzen Projektablauf (auch mit Inhalten)", () => {
+    for (const options of [{ lang: "de" as const }, { lang: "de" as const, content }]) {
+      const answer = answerLocally("Wie funktioniert ein Projekt?", options);
+      expect(answer.topicId).toBe("process");
+      expect(answer.text).toContain("1. Anfrage");
+      expect(answer.text).toContain("8. Übergabe");
+    }
   });
 
   it("Ablauf-Schritte kommen von der Leistungsseite", () => {

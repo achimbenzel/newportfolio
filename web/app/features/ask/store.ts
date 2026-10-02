@@ -16,6 +16,12 @@ import {
 } from "./engine";
 import { askTexts } from "./knowledge";
 
+/**
+ * Vorschläge unter einer Bot-Antwort (Themen-IDs).
+ * chips = kleine Weiterfragen in einer Zeile · list = Auswahl bei Rückfrage/Unsicherheit
+ */
+export type MessageOptions = { ids: string[]; lang: Locale; style: "chips" | "list" };
+
 export type ChatMessage = {
   id: number;
   from: "user" | "bot";
@@ -23,14 +29,13 @@ export type ChatMessage = {
   /** Anzahl sichtbarer Tokens (Tipp-Animation) */
   visible: number;
   pending: boolean;
+  options?: MessageOptions;
 };
 
 export type ChatState = {
   open: boolean;
   busy: boolean;
   messages: ChatMessage[];
-  /** null = Standard-Vorschläge in Seitensprache */
-  chips: { ids: string[]; lang: Locale } | null;
   /** Gesprächsgedächtnis (zuletzt besprochenes Fachgebiet/Aspekt) */
   context: AskContext;
 };
@@ -39,7 +44,6 @@ const initialState: ChatState = {
   open: false,
   busy: false,
   messages: [],
-  chips: null,
   context: {},
 };
 
@@ -101,7 +105,7 @@ export const chatStore = {
   /** Neuer Chat: Verlauf, Vorschläge und Gedächtnis leeren, Verlauf zuklappen */
   reset() {
     if (state.busy) return;
-    setState({ open: false, messages: [], chips: null, context: {} });
+    setState({ open: false, messages: [], context: {} });
   },
 
   async ask(
@@ -135,14 +139,25 @@ export const chatStore = {
     });
     const tokens = tokenize(answer.text);
     const animate = !prefersReducedMotion();
+    const asksBack = answer.kind === "clarify" || answer.kind === "unsure";
+    const suggestions: MessageOptions = {
+      ids: answer.followUps,
+      lang: answer.lang,
+      style: asksBack ? "list" : "chips",
+    };
 
     setState({
       messages: state.messages.map((m) =>
         m.id === placeholder.id
-          ? { ...m, tokens, visible: animate ? 0 : tokens.length, pending: false }
+          ? {
+              ...m,
+              tokens,
+              visible: animate ? 0 : tokens.length,
+              pending: false,
+              options: suggestions,
+            }
           : m,
       ),
-      chips: { ids: answer.followUps, lang: answer.lang },
       context: answer.context,
       busy: animate,
     });

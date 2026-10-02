@@ -79,7 +79,6 @@ export const askTexts: Record<
     industryQ: string;
     serviceMore: string;
     steps: string;
-    processIntro: string;
     and: string;
     numbers: string[];
   }
@@ -115,8 +114,6 @@ export const askTexts: Record<
     industryQ: "Hast du schon etwas im Bereich {industry} gemacht?",
     serviceMore: " Mehr unter [{title}]({link}).",
     steps: "Bei {title} läuft es in {count} Schritten: {list}.",
-    processIntro:
-      "Jedes Projekt beginnt mit einem Gespräch und bleibt bis zum Ende bei mir – du sprichst immer mit der Person, die die Arbeit macht. Die Schritte hängen von der Art ab:",
     and: " und ",
     numbers: [
       "null",
@@ -161,8 +158,6 @@ export const askTexts: Record<
     industryQ: "Have you done anything in {industry}?",
     serviceMore: " See [{title}]({link}).",
     steps: "{title} runs in {count} steps: {list}.",
-    processIntro:
-      "Every project starts with a conversation and stays with me until it's finished – you always talk to the person who does the work. The steps depend on the type:",
     and: " and ",
     numbers: [
       "zero",
@@ -1619,23 +1614,41 @@ export const topics: Topic[] = [
       "how it works",
       "get started",
       "start a project",
+      "wie arbeiten wir zusammen",
+      "wie gehst du vor",
+      "wie startet",
+      "wie fängt * an",
+      "ablauf eines projekts",
+      "how do we work together",
+      "how do we start",
+      "how does * start",
+      "step by step",
     ],
     examples: {
-      de: ["Wie läuft ein Projekt ab?", "Wie arbeitest du?"],
-      en: ["How does it work?", "What does your process look like?"],
+      de: [
+        "Wie läuft ein Projekt ab?",
+        "Wie funktioniert ein Projekt?",
+        "Wie arbeiten wir zusammen?",
+      ],
+      en: [
+        "How does a project work?",
+        "What does your process look like?",
+        "How do we work together?",
+      ],
     },
-    followUps: ["firstCall", "duration", "revisions"],
+    followUps: ["firstCall", "duration", "price"],
     de: {
       label: "Ablauf",
       q: "Wie läuft ein Projekt ab?",
-      a: "Jedes Projekt beginnt mit einem Gespräch und bleibt bis zum Ende bei mir. Die Schritte hängen von der Art ab:\nBrand: Discovery, Strategie & Positionierung, Identity-System, Rollout & Guidelines.\nMotion: Discovery, Konzept & Storyboard, Design & Animation, Auslieferung & Templates.\nMusik: Zuhören, Richtung, Design & Motion, Auslieferung.",
+      a: "So läuft ein Projekt bei mir ab – du sprichst dabei immer direkt mit mir:\n1. Anfrage: Du schreibst mir kurz, was du brauchst.\n2. Erstgespräch: kostenlos – ab 750 € per Call, sonst schriftlich.\n3. Angebot: fester Preis für den abgesprochenen Umfang inkl. Korrekturschleifen, dazu der Zeitplan.\n4. Anzahlung: je nach Projekt 50–75 % vorab.\n5. Briefing: mit meinem Fragebogen und allem, was schon da ist.\n6. Gestaltung: je nach Art in eigenen Schritten – frag mich gern nach Branding, Motion oder Musik.\n7. Feedback: standardmäßig zwei Korrekturschleifen.\n8. Übergabe: alle Dateien in den Formaten, die du brauchst.",
     },
     en: {
       label: "how it works",
       q: "How does a project work?",
-      a: "Every project starts with a conversation and stays with me until it's finished. The steps depend on the type:\nBrand: discovery, strategy & positioning, identity system, rollout & guidelines.\nMotion: discovery, concept & storyboard, design & animation, delivery & templates.\nMusic: listening, direction, design & motion, delivery.",
+      a: "This is how a project works with me – and you always talk to me directly:\n1. Inquiry: you briefly tell me what you need.\n2. First conversation: free – as a call from €750, otherwise in writing.\n3. Quote: a fixed price for the agreed scope incl. rounds of revisions, plus the schedule.\n4. Deposit: 50–75% up front, depending on the project.\n5. Briefing: with my questionnaire and whatever already exists.\n6. Design: in its own steps depending on the type – feel free to ask me about branding, motion or music.\n7. Feedback: two rounds of revisions by default.\n8. Handover: all files in the formats you need.",
     },
-    // werden automatisch durch die Schritte der Leistungsseiten ersetzt, sobald Inhalte da sind
+    // Gestaltungsschritte je Fachgebiet – werden automatisch durch die Schritte der
+    // Leistungsseiten ersetzt, sobald Inhalte da sind
     facets: {
       branding: {
         de: "Branding läuft in vier Schritten: Discovery, Strategie & Positionierung, Identity-System sowie Rollout & Guidelines.",
@@ -2835,12 +2848,12 @@ export const topics: Topic[] = [
     de: {
       label: "Hobbys",
       q: "Was machst du neben der Arbeit?",
-      a: "Musik, Konzerte und Festivals, Reisen, Radfahren, Tischtennis und Basketball – und Videospiele, am liebsten PS1- und PS2-Klassiker. Außerdem sammle ich alte Spiele und Schallplatten und trinke, wie ich selbst sage, zu viel Tee.",
+      a: "Musik, Konzerte und Festivals, Reisen, Radfahren, Tischtennis und Basketball – und Videospiele, am liebsten PS1- und PS2-Klassiker. Außerdem sammle ich alte Spiele und Schallplatten und trinke gern Tee.",
     },
     en: {
       label: "hobbies",
       q: "What do you do outside of work?",
-      a: "Music, concerts and festivals, travelling, cycling, table tennis and basketball – and video games, PS1 and PS2 classics above all. I also collect old games and vinyl records and, in my own words, drink too much tea.",
+      a: "Music, concerts and festivals, travelling, cycling, table tennis and basketball – and video games, PS1 and PS2 classics above all. I also collect old games and vinyl records and like drinking tea.",
     },
   },
   {
@@ -2986,12 +2999,12 @@ export const topics: Topic[] = [
     de: {
       label: "Lieblingstee",
       q: "Was ist dein Lieblingstee?",
-      a: "Lindenblütentee – davon trinke ich, wie ich selbst sage, zu viel.",
+      a: "Am liebsten Lindenblütentee – Tee trinke ich generell gern.",
     },
     en: {
       label: "favorite tea",
       q: "What's your favorite tea?",
-      a: "Linden blossom tea – and in my own words, I drink too much of it.",
+      a: "Linden blossom tea is my favorite – I like drinking tea in general.",
     },
   },
   {

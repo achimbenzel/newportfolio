@@ -6,6 +6,8 @@
 
 .inner {
   display: grid;
+  /* Spalte nie breiter als der Container – lange Vorschlagszeilen scrollen statt zu dehnen */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   /* oben Platz für den schwebenden Header */
   padding-block: 7rem 4rem;

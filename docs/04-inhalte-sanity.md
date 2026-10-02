@@ -63,7 +63,8 @@ Der Chat kennt alle Projekte automatisch (nach dem nächsten Build). Er nutzt da
 | **Stichwörter für „Frag Achim“** | weitere Begriffe, z. B. „Café“, „Foodtruck“, ein Produktname           |
 
 Auch die **Leistungsseiten** fließen ein: Die Einleitung ist die Chat-Antwort zu Branding/Motion/
-Musik, die Ablauf-Schritte die Antwort auf „Wie läuft ein … ab?“.
+Musik, die Ablauf-Schritte die Antwort auf „Wie läuft ein Branding-Projekt ab?“ (der allgemeine
+Projektablauf – Anfrage bis Übergabe – steht fest in `knowledge.ts`).
 
 Details: [09-ask-widget.md → Wissen wächst automatisch](09-ask-widget.md#wissen-wächst-automatisch-mit-der-website).
 

@@ -6,24 +6,28 @@ import {
   useSyncExternalStore,
   type FormEvent,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 import { Link } from "react-router";
 import { LogoMark3D } from "~/components/brand/LogoMark3D";
 import type { AskContent } from "~/content/types";
 import { Icon } from "~/components/ui/Icon";
 import { useLocale, useT } from "~/i18n";
+import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
 import { getTopic, type RichToken } from "./engine";
 import { defaultChips } from "./knowledge";
-import { chatStore, type ChatMessage } from "./store";
+import { chatStore, type ChatMessage, type MessageOptions } from "./store";
 import { TimeGreeting } from "./TimeGreeting";
 import styles from "./AskWidget.module.css";
 
 /**
  * „Frag Achim“ – Chatfenster im Hero (Look: großes Eingabefeld mit Neon-Glow).
  * Darüber eine Begrüßung je nach Tageszeit, der Verlauf erscheint im selben Fenster ÜBER dem
- * Eingabefeld, Vorschläge darunter. Antwortet auf Deutsch und Englisch (Sprache der Frage),
- * komplett lokal. `content`: Wissen aus dem Content-Layer (Projekte, Leistungen).
+ * Eingabefeld. Vorschläge stehen IM Fenster: vor dem ersten Gespräch unter dem Eingabefeld,
+ * danach unter der letzten Antwort (bei Rückfragen als Auswahlliste).
+ * Antwortet auf Deutsch und Englisch (Sprache der Frage), komplett lokal.
+ * `content`: Wissen aus dem Content-Layer (Projekte, Leistungen).
  */
 export function AskWidget({ content }: { content?: AskContent }) {
   const t = useT();
@@ -37,28 +41,29 @@ export function AskWidget({ content }: { content?: AskContent }) {
   const inputId = useId();
   const logId = useId();
   const logRef = useRef<HTMLDivElement>(null);
-  const chipsRef = useRef<HTMLDivElement>(null);
-  const focusChipsNext = useRef(false);
+  const focusOptionsNext = useRef(false);
 
   const hasHistory = chat.messages.length > 0;
-  const chipLang = chat.chips?.lang ?? locale;
-  const chipIds = (chat.chips?.ids ?? defaultChips).filter(
-    (id) => getTopic(id, content)?.[chipLang].label,
-  );
+  const lastMessage = chat.messages.at(-1);
   const canSend = !chat.busy && question.trim().length > 0;
+  /** Nur Themen mit Beschriftung in der jeweiligen Sprache taugen als Vorschlag */
+  const labelled = (ids: string[], lang: Locale) =>
+    ids.filter((id) => getTopic(id, content)?.[lang].label);
 
   // Neue Inhalte → Verlauf nach unten scrollen (nur DOM, kein State)
   useEffect(() => {
     const log = logRef.current;
     if (log) log.scrollTop = log.scrollHeight;
-  }, [chat.messages, chat.open]);
+  }, [chat.messages, chat.open, chat.busy]);
 
   // Nach Klick auf einen Vorschlag den Fokus auf den ersten neuen Vorschlag setzen (Tastatur)
   useEffect(() => {
-    if (!focusChipsNext.current || chat.busy) return;
-    focusChipsNext.current = false;
-    chipsRef.current?.querySelector("button")?.focus({ preventScroll: true });
-  }, [chat.busy, chat.chips]);
+    if (!focusOptionsNext.current || chat.busy) return;
+    focusOptionsNext.current = false;
+    logRef.current
+      ?.querySelector<HTMLButtonElement>("[data-options] button")
+      ?.focus({ preventScroll: true });
+  }, [chat.busy, chat.messages]);
 
   const send = () => {
     if (!canSend) return;
@@ -79,16 +84,44 @@ export function AskWidget({ content }: { content?: AskContent }) {
     }
   };
 
-  const askTopic = (id: string) => {
+  const askTopic = (id: string, lang: Locale) => {
     const topic = getTopic(id, content);
     if (!topic || chat.busy) return;
-    focusChipsNext.current = true;
-    void chatStore.ask(topic[chipLang].q ?? topic[chipLang].label ?? id, {
+    focusOptionsNext.current = true;
+    void chatStore.ask(topic[lang].q ?? topic[lang].label ?? id, {
       pageLocale: locale,
       topicId: id,
-      lang: chipLang,
+      lang,
       content,
     });
+  };
+
+  const renderOptions = (options: MessageOptions) => {
+    const ids = labelled(options.ids, options.lang);
+    if (ids.length === 0) return null;
+    return (
+      <div
+        className={styles.options}
+        data-style={options.style}
+        data-options
+        role="group"
+        aria-label={t.ask.suggestions}
+      >
+        {ids.map((id) => (
+          <button
+            key={id}
+            type="button"
+            className={styles.option}
+            onClick={() => askTopic(id, options.lang)}
+          >
+            {getTopic(id, content)?.[options.lang].label}
+            {options.style === "list" && (
+              <Icon name="arrowRight" size={14} className={styles.optionIcon} />
+            )}
+          </button>
+        ))}
+      </div>
+    );
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -141,7 +174,14 @@ export function AskWidget({ content }: { content?: AskContent }) {
               tabIndex={0}
             >
               {chat.messages.map((m) => (
-                <Message key={m.id} message={m} />
+                <Message
+                  key={m.id}
+                  message={m}
+                  // Vorschläge nur unter der letzten Antwort, sobald sie fertig getippt ist
+                  options={
+                    m === lastMessage && !chat.busy && m.options ? renderOptions(m.options) : null
+                  }
+                />
               ))}
             </div>
           </div>
@@ -165,6 +205,13 @@ export function AskWidget({ content }: { content?: AskContent }) {
           aria-controls={logId}
         />
 
+        {/* Startvorschläge – im Fenster, solange noch nichts gefragt wurde */}
+        {!hasHistory && (
+          <div className={styles.starters}>
+            {renderOptions({ ids: defaultChips, lang: locale, style: "chips" })}
+          </div>
+        )}
+
         <div className={styles.footer}>
           <span className={styles.identity}>
             <LogoMark3D depth={6} className={styles.identityMark} />
@@ -181,50 +228,39 @@ export function AskWidget({ content }: { content?: AskContent }) {
           </button>
         </div>
       </form>
-
-      <div ref={chipsRef} className={styles.chips} role="group" aria-label={t.ask.suggestions}>
-        {chipIds.map((id) => (
-          <button
-            key={`${chipLang}-${id}`}
-            type="button"
-            className={styles.chip}
-            onClick={() => askTopic(id)}
-            disabled={chat.busy}
-          >
-            {getTopic(id, content)?.[chipLang].label}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
 
-function Message({ message }: { message: ChatMessage }) {
+function Message({ message, options }: { message: ChatMessage; options: ReactNode }) {
   const t = useT();
   const isBot = message.from === "bot";
   const typing = message.visible < message.tokens.length;
   return (
     <div className={styles.message} data-from={message.from}>
-      {isBot && <LogoMark3D depth={6} className={styles.avatarLogo} />}
-      <div className={styles.bubble}>
-        <span className="sr-only">{isBot ? t.ask.bot : t.ask.you}: </span>
-        {message.pending ? (
-          <p className={styles.thinking}>
-            <span className="sr-only">{t.ask.thinking}</span>
-            <span className={styles.dots} aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-          </p>
-        ) : (
-          <p className={styles.text} data-typing={typing || undefined}>
-            {message.tokens.slice(0, message.visible).map((token, index) => (
-              <RichPart key={index} token={token} />
-            ))}
-          </p>
-        )}
+      <div className={styles.row}>
+        {isBot && <LogoMark3D depth={6} className={styles.avatarLogo} />}
+        <div className={styles.bubble}>
+          <span className="sr-only">{isBot ? t.ask.bot : t.ask.you}: </span>
+          {message.pending ? (
+            <p className={styles.thinking}>
+              <span className="sr-only">{t.ask.thinking}</span>
+              <span className={styles.dots} aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+            </p>
+          ) : (
+            <p className={styles.text} data-typing={typing || undefined}>
+              {message.tokens.slice(0, message.visible).map((token, index) => (
+                <RichPart key={index} token={token} />
+              ))}
+            </p>
+          )}
+        </div>
       </div>
+      {options}
     </div>
   );
 }
