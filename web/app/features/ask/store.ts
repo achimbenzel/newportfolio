@@ -3,6 +3,7 @@
  * Bleibt bei Navigation innerhalb der Seite erhalten, ist nach Reload weg.
  * → keine Speicherung auf dem Gerät, kein Consent nötig.
  */
+import type { AskProject } from "~/content/types";
 import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
 import { getAnswer, detectLanguage, tokenize, type HistoryEntry, type RichToken } from "./engine";
@@ -87,7 +88,10 @@ export const chatStore = {
     setState({ messages: [], chips: null });
   },
 
-  async ask(question: string, options: { pageLocale: Locale; topicId?: string; lang?: Locale }) {
+  async ask(
+    question: string,
+    options: { pageLocale: Locale; topicId?: string; lang?: Locale; projects?: AskProject[] },
+  ) {
     const q = question.trim().slice(0, askConfig.maxQuestionLength);
     if (!q || state.busy) return;
 
@@ -103,7 +107,11 @@ export const chatStore = {
       .map((m) => ({ role: m.from === "user" ? "user" : "assistant", content: textOf(m) }));
 
     const lang = options.lang ?? detectLanguage(q, options.pageLocale);
-    const answer = await getAnswer(history, q, { lang, topicId: options.topicId });
+    const answer = await getAnswer(history, q, {
+      lang,
+      topicId: options.topicId,
+      projects: options.projects,
+    });
     const tokens = tokenize(answer.text);
     const animate = !prefersReducedMotion();
 

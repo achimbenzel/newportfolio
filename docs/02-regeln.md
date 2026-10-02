@@ -82,10 +82,16 @@ Code (Variablen, Typen) ist **Englisch**, Kommentare und Doku sind **Deutsch**.
 
 ## H. Barrierefreiheit
 
+**Die Website ist barrierefrei – Ziel WCAG 2.2 AA.** Eine Änderung, die Barrieren erzeugt, ist nicht
+fertig. Details, Checklisten und Tests: [11-barrierefreiheit.md](11-barrierefreiheit.md).
+
 1. Alles per Tastatur bedienbar, sichtbarer Fokus (`:focus-visible`) nicht entfernen.
 2. Buttons sind `<button>`, Links sind `<a>`/`<Link>` – nie `div` mit `onClick`.
-3. Icon-Buttons brauchen ein `aria-label`.
+3. Icon-Buttons brauchen ein `aria-label`, dekorative Grafiken `aria-hidden`.
 4. Textkontrast ≥ 4.5 : 1 (Tokens sind entsprechend gewählt, siehe [03-design-system.md](03-design-system.md)).
+5. `prefers-reduced-motion` respektieren, Inhalte nie nur über Farbe oder Bewegung vermitteln.
+6. Jedes Bild hat einen Alternativtext (in Sanity Pflicht), jede Seite genau eine `<h1>`.
+7. Bei 200 % Zoom und 320 px Breite bleibt alles nutzbar.
 
 ## I. Qualität & Git
 

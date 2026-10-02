@@ -39,6 +39,15 @@ export type Project = ProjectSummary & {
   seo?: { title?: string; description?: string };
 };
 
+/** Projektwissen für den Chat „Frag Achim“ – beide Sprachen, kompakt (landet im Browser). */
+export type AskProject = {
+  slug: string;
+  client?: string;
+  year: number;
+  /** zusätzliche Suchbegriffe aus Sanity (Feld „Stichwörter für Frag Achim“) */
+  keywords: string[];
+} & Record<"de" | "en", { title: string; category: string; industry?: string; summary: string }>;
+
 export type Service = {
   slug: ServiceSlug;
   title: string;

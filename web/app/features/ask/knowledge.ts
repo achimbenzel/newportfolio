@@ -28,7 +28,7 @@ export type Topic = {
 
 export const askTexts: Record<
   Locale,
-  { greeting: string; offTopic: string; fallback: string; also: string }
+  { greeting: string; offTopic: string; fallback: string; also: string; projects: string }
 > = {
   de: {
     greeting:
@@ -38,6 +38,9 @@ export const askTexts: Record<
     fallback:
       "Dazu habe ich keine genaue Antwort. Am schnellsten klärst du das per Mail an Achim: [{email}](mailto:{email}).",
     also: "\n\nAußerdem: ",
+    /** Antwort auf „Welche Projekte/Kunden?“, sobald es Projekte gibt – {list} = Projekte mit Links */
+    projects:
+      "Zum Beispiel {list}. Alle Projekte findest du auf der Seite [Projekte]({base}/work).",
   },
   en: {
     greeting:
@@ -47,6 +50,7 @@ export const askTexts: Record<
     fallback:
       "I don't have a precise answer to that. The quickest way to get one is to email Achim: [{email}](mailto:{email}).",
     also: "\n\nAlso: ",
+    projects: "For example {list}. You'll find all projects on the [Work page]({base}/work).",
   },
 };
 
@@ -344,17 +348,7 @@ export const synonyms: string[][] = [
   // Cover
   ["cover", "albumcover", "plattencover", "artwork", "cover art"],
   // 3D
-  [
-    "3d",
-    "dreidimensional",
-    "c4d",
-    "cinema 4d",
-    "blender",
-    "render",
-    "rendering",
-    "modeling",
-    "modelling",
-  ],
+  ["3d", "dreidimensional", "c4d", "cinema 4d", "render", "rendering", "modeling", "modelling"],
   // Ablauf
   ["ablauf", "prozess", "vorgehen", "vorgehensweise", "workflow", "process", "schritte", "steps"],
   // Vorbereitung
@@ -847,6 +841,38 @@ export const topics: Topic[] = [
     },
   },
   {
+    id: "software",
+    keywords: [
+      "software",
+      "programm",
+      "programme",
+      "program",
+      "programs",
+      "tools",
+      "apps",
+      "adobe",
+      "creative cloud",
+      "illustrator",
+      "photoshop",
+      "indesign",
+      "after effects",
+      "premiere",
+      "blender",
+      "fl studio",
+    ],
+    followUps: ["three_d", "motion", "music"],
+    de: {
+      label: "Programme",
+      q: "Mit welchen Programmen arbeitest du?",
+      a: "Achim arbeitet mit Illustrator, Photoshop, InDesign, After Effects, Premiere Pro, Blender und FL Studio.",
+    },
+    en: {
+      label: "software",
+      q: "Which software do you use?",
+      a: "Achim works with Illustrator, Photoshop, InDesign, After Effects, Premiere Pro, Blender and FL Studio.",
+    },
+  },
+  {
     id: "fonts",
     keywords: ["schrift", "type design", "eigene schrift"],
     followUps: ["tools", "about", "work"],
@@ -864,8 +890,9 @@ export const topics: Topic[] = [
   {
     id: "tools",
     keywords: [
-      "tool",
-      "tools",
+      "eigene tools",
+      "eigene werkzeuge",
+      "own tools",
       "skript",
       "skripte",
       "script",
@@ -935,6 +962,13 @@ export const topics: Topic[] = [
       "your work",
       "selected work",
       "case studies",
+      "kunden",
+      "kundenprojekte",
+      "für wen",
+      "clients",
+      "client work",
+      "worked with",
+      "worked for",
     ],
     followUps: ["branding", "motion", "contact"],
     de: {

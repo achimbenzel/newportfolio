@@ -121,9 +121,22 @@
   max-height: min(46svh, 420px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-2) var(--space-5) var(--space-5);
+  padding: var(--space-5) var(--space-5) var(--space-5);
   scroll-behavior: smooth;
   border-bottom: 1px solid var(--color-border);
+  /* Scrollbalken unsichtbar – Scrollen per Mausrad, Touch und Tastatur bleibt möglich */
+  scrollbar-width: none;
+  /* weicher Rand oben als Hinweis, dass weiter oben noch Nachrichten sind */
+  mask-image: linear-gradient(to bottom, transparent, black var(--space-5));
+}
+
+.log::-webkit-scrollbar {
+  display: none;
+}
+
+.log:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
 }
 
 /* ── Nachrichten als Chat-Bubbles: Achim links, Besucher rechts ─── */

@@ -6,8 +6,9 @@
  * dann Stichwörter/Synonyme in knowledge.ts ergänzen, bis `npm test` grün ist.
  */
 import { describe, expect, it } from "vitest";
+import type { AskProject } from "~/content/types";
 import type { Locale } from "~/i18n/config";
-import { answerLocally, detectLanguage, normalize, stem } from "./engine";
+import { answerLocally, detectLanguage, getTopic, normalize, stem } from "./engine";
 import { defaultChips, intentTopics, synonyms, topics } from "./knowledge";
 
 /** [Frage, erwartetes Thema (null = keine Antwort), erwartete Sprache] */
@@ -36,7 +37,12 @@ const cases: [string, string | null, Locale][] = [
   ["Gestaltest du auch Albumcover?", "music", "de"],
   ["I need a visualizer for my new single", "music", "en"],
   ["Machst du 3D?", "three_d", "de"],
-  ["Do you work in Blender?", "three_d", "en"],
+  ["Do you work in Blender?", "software", "en"],
+  ["Mit welchen Programmen arbeitest du?", "software", "de"],
+  ["Kannst du After Effects?", "software", "de"],
+  ["Which software do you use?", "software", "en"],
+  ["Welche Tools nutzt du?", "software", "de"],
+  ["Baust du eigene Tools?", "tools", "de"],
 
   // Zusammenarbeit
   ["Wie läuft ein Projekt ab?", "process", "de"],
@@ -163,5 +169,95 @@ describe("Frag Achim – Inhalte", () => {
         owner.set(key, group[0]!);
       }
     }
+  });
+});
+
+/* ── Kundenprojekte (kommen später aus Sanity – hier feste Testdaten) ── */
+
+const projects: AskProject[] = [
+  {
+    slug: "gute-stube",
+    client: "Gute Stube",
+    year: 2025,
+    keywords: ["café", "bistro"],
+    de: {
+      title: "Gute Stube Freisen",
+      category: "Brand Identity",
+      industry: "Gastronomie",
+      summary: "Ein Café & Bistro in Freisen.",
+    },
+    en: {
+      title: "Gute Stube Freisen",
+      category: "Brand Identity",
+      industry: "Gastronomy",
+      summary: "A café and bistro in Freisen.",
+    },
+  },
+  {
+    slug: "joeys-picknick",
+    client: "Joeys Picknick",
+    year: 2026,
+    keywords: ["foodtruck"],
+    de: {
+      title: "Joeys Picknick Mainz",
+      category: "Brand Identity",
+      industry: "Gastronomie",
+      summary: "Ein Foodtruck aus Mainz.",
+    },
+    en: {
+      title: "Joeys Picknick Mainz",
+      category: "Brand Identity",
+      industry: "Gastronomy",
+      summary: "A food truck from Mainz.",
+    },
+  },
+  {
+    slug: "lumakeys",
+    year: 2026,
+    keywords: [],
+    de: { title: "LumaKeys", category: "Logo Design", summary: "Ein Logo." },
+    en: { title: "LumaKeys", category: "Logo Design", summary: "A logo." },
+  },
+];
+
+describe("Frag Achim – Kundenprojekte", () => {
+  const ask = (question: string, lang: Locale = "de") =>
+    answerLocally(question, { lang, projects });
+
+  it.each([
+    ["Erzähl mir was über Gute Stube", "project:gute-stube"],
+    ["Was hast du für Joeys Picknick gemacht?", "project:joeys-picknick"],
+    ["Was ist LumaKeys?", "project:lumakeys"],
+    ["Hast du schon mal ein Café gestaltet?", "project:gute-stube"],
+    ["Hast du schon was für Gastronomie gemacht?", "industry:gastronomie"],
+    ["Für welche Kunden hast du gearbeitet?", "work"],
+    ["Kann ich Referenzen sehen?", "work"],
+  ])("„%s“ → %s", (question, expected) => {
+    expect(ask(question).topicId).toBe(expected);
+  });
+
+  it("Projektantwort enthält Kurzbeschreibung und Link", () => {
+    const answer = ask("Tell me about LumaKeys", "en");
+    expect(answer.text).toContain("LumaKeys (Logo Design, 2026): A logo.");
+    expect(answer.text).toContain("(/en/work/lumakeys)");
+  });
+
+  it("Projektliste verlinkt die Projekte und schlägt sie als Chips vor", () => {
+    const answer = ask("Welche Projekte hast du gemacht?");
+    expect(answer.text).toContain("[Gute Stube Freisen](/de/work/gute-stube)");
+    expect(answer.followUps).toContain("project:gute-stube");
+    expect(getTopic("project:gute-stube", projects)?.de.label).toBe("Gute Stube Freisen");
+  });
+
+  it("Branche listet alle passenden Projekte", () => {
+    const answer = ask("Have you done anything in gastronomy?", "en");
+    expect(answer.text).toContain("Gute Stube Freisen");
+    expect(answer.text).toContain("Joeys Picknick Mainz");
+  });
+
+  it("ohne Projekte bleibt alles beim Alten", () => {
+    expect(answerLocally("Welche Projekte hast du gemacht?", { lang: "de" }).text).toContain(
+      "[Projekte](/de/work)",
+    );
   });
 });

@@ -41,6 +41,7 @@ export const project = defineType({
     defineField({
       name: "description",
       title: "Beschreibung",
+      description: "Die ersten zwei Sätze nutzt auch der Chat „Frag Achim“ als Kurzantwort.",
       type: "localeText",
       group: "content",
       validation: (rule) => rule.required(),
@@ -77,6 +78,16 @@ export const project = defineType({
     defineField({
       name: "software",
       title: "Software",
+      type: "array",
+      group: "meta",
+      of: [defineArrayMember({ type: "string" })],
+      options: { layout: "tags" },
+    }),
+    defineField({
+      name: "askKeywords",
+      title: "Stichwörter für „Frag Achim“",
+      description:
+        "Zusätzliche Begriffe, bei denen der Chat dieses Projekt erkennen soll (z. B. „Café“, „Foodtruck“). Titel, Kunde und Branche erkennt er automatisch.",
       type: "array",
       group: "meta",
       of: [defineArrayMember({ type: "string" })],

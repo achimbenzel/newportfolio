@@ -15,8 +15,10 @@ export type FallbackProject = {
   title: L10n;
   category: L10n;
   scope: L10n;
-  industry: L10n;
+  industry?: L10n;
   description: L10n;
+  /** zusätzliche Suchbegriffe für den Chat „Frag Achim“ */
+  askKeywords?: string[];
 };
 
 export const fallbackProjects: FallbackProject[] = [
@@ -34,6 +36,7 @@ export const fallbackProjects: FallbackProject[] = [
       en: "Brand Strategy, Visual Identity, Digital Design",
     },
     industry: { de: "Gastronomie", en: "Gastronomy" },
+    askKeywords: ["café", "bistro", "restaurant", "hausmannskost"],
     description: {
       de: "Die Gute Stube ist ein im Jahr 2025 von Köchin und Küchenmeisterin Kiara Balling gegründetes Café & Bistro in Freisen. Besonders an der Guten Stube ist, dass auf Hausmannskost sowie eine angenehme Atmosphäre gesetzt wird. Ziel war es, genau diese Aspekte in der Markenidentität widerzuspiegeln.",
       en: "Gute Stube is a café and bistro founded in 2025 by chef Kiara Balling. What makes it special is its focus on hearty home-style cooking and a welcoming atmosphere. The goal was to reflect exactly these values in the brand identity.",
@@ -53,6 +56,7 @@ export const fallbackProjects: FallbackProject[] = [
       en: "Brand Strategy, Visual Identity, Digital Design",
     },
     industry: { de: "Gastronomie", en: "Gastronomy" },
+    askKeywords: ["foodtruck", "food truck", "picknickkorb", "rhein"],
     description: {
       de: "Joeys Picknick ist ein moderner Foodtruck aus Mainz, der sich auf die Vermietung liebevoll zusammengestellter Picknickkörbe entlang des Rheinufers spezialisiert hat.",
       en: "Joeys Picknick is a modern food truck from Mainz that specialises in renting out thoughtfully curated picnic baskets along the banks of the Rhine.",
@@ -68,7 +72,6 @@ export const fallbackProjects: FallbackProject[] = [
     title: { de: "LumaKeys", en: "LumaKeys" },
     category: { de: "Logo Design", en: "Logo Design" },
     scope: { de: "Logo Design", en: "Logo Design" },
-    industry: { de: "Inhalt folgt", en: "Coming soon" },
     description: {
       de: "Platzhaltertext – die Projektbeschreibung wird später in Sanity gepflegt.",
       en: "Placeholder text – the project description will be managed in Sanity later.",

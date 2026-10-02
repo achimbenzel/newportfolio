@@ -9,6 +9,7 @@
  * Danach werden Treffer gezählt (exakt, Wortanfang/-ende, Tippfehler, Mehrwort-Ausdrücke).
  */
 import { site } from "~/config/site";
+import type { AskProject } from "~/content/types";
 import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
 import {
@@ -21,15 +22,10 @@ import {
   topics,
   type Topic,
 } from "./knowledge";
+import { buildProjectTopics, projectList, projectTopicId } from "./projects";
 
 export type AskAnswer = { topicId: string | null; lang: Locale; text: string; followUps: string[] };
 export type HistoryEntry = { role: "user" | "assistant"; content: string };
-
-const topicById = new Map(topics.map((topic) => [topic.id, topic]));
-
-export function getTopic(id: string): Topic | undefined {
-  return topicById.get(id);
-}
 
 /* ── 1. Normalisieren ─────────────────────────────────────────────── */
 
@@ -111,8 +107,8 @@ function distance(a: string, b: string): number {
 
 type PreparedTopic = { topic: Topic; words: string[]; phrases: string[][] };
 
-/** Stichwörter einmalig aufbereiten (doppelte nach Synonym-Ersetzung entfernen). */
-const preparedTopics: PreparedTopic[] = topics.map((topic) => {
+/** Stichwörter eines Themas aufbereiten (doppelte nach Synonym-Ersetzung entfernen). */
+function prepareTopic(topic: Topic): PreparedTopic {
   const words = new Set<string>();
   const phrases = new Map<string, string[]>();
   for (const keyword of topic.keywords) {
@@ -121,7 +117,40 @@ const preparedTopics: PreparedTopic[] = topics.map((topic) => {
     else if (tokens.length > 1) phrases.set(tokens.join(" "), tokens);
   }
   return { topic, words: [...words], phrases: [...phrases.values()] };
-});
+}
+
+/* ── Wissen: feste Themen + automatisch erzeugte Projekt-Themen ───── */
+
+type Knowledge = { prepared: PreparedTopic[]; byId: Map<string, Topic> };
+
+const staticKnowledge: Knowledge = {
+  prepared: topics.map(prepareTopic),
+  byId: new Map(topics.map((topic) => [topic.id, topic])),
+};
+
+const knowledgeCache = new WeakMap<AskProject[], Knowledge>();
+
+function knowledgeFor(projects?: AskProject[]): Knowledge {
+  if (!projects?.length) return staticKnowledge;
+  let knowledge = knowledgeCache.get(projects);
+  if (!knowledge) {
+    const dynamic = buildProjectTopics(projects);
+    knowledge = {
+      // Projekt-Themen zuerst: bei Punktgleichstand gewinnt das spezifischere Thema
+      prepared: [...dynamic.map(prepareTopic), ...staticKnowledge.prepared],
+      byId: new Map([
+        ...staticKnowledge.byId,
+        ...dynamic.map((topic) => [topic.id, topic] as const),
+      ]),
+    };
+    knowledgeCache.set(projects, knowledge);
+  }
+  return knowledge;
+}
+
+export function getTopic(id: string, projects?: AskProject[]): Topic | undefined {
+  return knowledgeFor(projects).byId.get(id);
+}
 
 function containsSequence(tokens: string[], sequence: string[]): boolean {
   outer: for (let i = 0; i <= tokens.length - sequence.length; i++) {
@@ -183,10 +212,10 @@ export function fillPlaceholders(text: string, lang: Locale): string {
  */
 export type RankedTopic = { topic: Topic; score: number; intent: boolean };
 
-export function findTopic(question: string): RankedTopic[] {
+export function findTopic(question: string, projects?: AskProject[]): RankedTopic[] {
   const tokens = prepare(question);
-  const ranked = preparedTopics
-    .map((prepared) => {
+  const ranked = knowledgeFor(projects)
+    .prepared.map((prepared) => {
       const raw = score(prepared, tokens);
       const intent = raw >= 3 && intentTopics.has(prepared.topic.id);
       return { topic: prepared.topic, score: intent ? raw + 3 : raw, intent };
@@ -199,23 +228,29 @@ export function findTopic(question: string): RankedTopic[] {
   );
 }
 
-export function answerLocally(
-  question: string,
-  options: { lang: Locale; topicId?: string },
-): AskAnswer {
-  const { lang } = options;
-  const texts = askTexts[lang];
-  const forced = options.topicId ? getTopic(options.topicId) : undefined;
-  if (forced) {
+type AskOptions = { lang: Locale; topicId?: string; projects?: AskProject[] };
+
+/** Antworttext + Vorschläge eines Themas. „work“ listet die echten Projekte auf, sobald es welche gibt. */
+function topicAnswer(topic: Topic, lang: Locale, projects?: AskProject[]) {
+  if (topic.id === "work" && projects?.length) {
     return {
-      topicId: forced.id,
-      lang,
-      text: fillPlaceholders(forced[lang].a, lang),
-      followUps: forced.followUps,
+      text: askTexts[lang].projects.replace("{list}", projectList(projects, lang)),
+      followUps: [...projects.slice(0, 3).map((p) => projectTopicId(p.slug)), "contact"],
     };
   }
+  return { text: topic[lang].a, followUps: topic.followUps };
+}
 
-  const [top, second] = findTopic(question);
+export function answerLocally(question: string, options: AskOptions): AskAnswer {
+  const { lang, projects } = options;
+  const texts = askTexts[lang];
+  const forced = options.topicId ? getTopic(options.topicId, projects) : undefined;
+  if (forced) {
+    const { text, followUps } = topicAnswer(forced, lang, projects);
+    return { topicId: forced.id, lang, text: fillPlaceholders(text, lang), followUps };
+  }
+
+  const [top, second] = findTopic(question, projects);
   if (!top) {
     const offTopic = normalize(question)
       .split(" ")
@@ -228,7 +263,8 @@ export function answerLocally(
     };
   }
 
-  let text = top.topic[lang].a;
+  const answer = topicAnswer(top.topic, lang, projects);
+  let text = answer.text;
   // Zweites Thema nur anhängen, wenn es eine eigene Frage ist („Wie lange dauert es und was kostet es?“)
   // – nicht, wenn es nur das Fachgebiet der Aspekt-Frage ist („Wie teuer ist ein Logo?“).
   const addSecond =
@@ -243,7 +279,7 @@ export function answerLocally(
     topicId: top.topic.id,
     lang,
     text: fillPlaceholders(text, lang),
-    followUps: top.topic.followUps,
+    followUps: answer.followUps,
   };
 }
 
@@ -253,7 +289,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function getAnswer(
   history: HistoryEntry[],
   question: string,
-  options: { lang: Locale; topicId?: string },
+  options: AskOptions,
 ): Promise<AskAnswer> {
   const { min, max } = askConfig.thinkingDelay;
   if (!askConfig.endpoint || options.topicId) {

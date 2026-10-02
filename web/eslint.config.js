@@ -18,6 +18,8 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": "error",
       // role="list" bewusst erlaubt: Safari entfernt sonst die Listen-Semantik bei list-style: none
       "jsx-a11y/no-redundant-roles": ["error", { ul: ["list"], ol: ["list"] }],
+      // Scrollbare Bereiche ohne sichtbaren Balken (Chat-Verlauf) müssen per Tastatur erreichbar sein
+      "jsx-a11y/no-noninteractive-tabindex": ["error", { tags: [], roles: ["tabpanel", "log"] }],
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "no-restricted-imports": [
         "error",

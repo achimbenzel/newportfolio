@@ -117,6 +117,30 @@ Aus Gesprächen mit Kunden, E-Mails und Feedback. Das Widget speichert bewusst *
 (Datenschutz). Eine Auswertung „welche Fragen wurden nicht erkannt?“ wäre technisch möglich,
 braucht aber einen eigenen Server-Endpoint und einen Hinweis in der Datenschutzerklärung.
 
+## Kundenprojekte im Chat
+
+Projekte muss man **nicht** in `knowledge.ts` eintragen. Der Chat erzeugt sie automatisch aus
+denselben Daten wie die Projektseiten (Sanity – bzw. bis dahin `web/app/content/fallback/projects.ts`):
+
+| Frage (Beispiel)                                  | Antwort                                                     |
+| ------------------------------------------------- | ----------------------------------------------------------- |
+| „Erzähl mir von Gute Stube“ / „Was ist LumaKeys?“ | Titel, Kategorie, Jahr, Kurzbeschreibung + Link zum Projekt |
+| „Welche Projekte/Kunden hattest du?“              | Liste der Projekte mit Links, Projekte als Vorschläge       |
+| „Hast du schon was für Gastronomie gemacht?“      | alle Projekte dieser Branche                                |
+| „Hast du schon mal ein Café gestaltet?“           | Projekt mit dem Stichwort „Café“                            |
+
+**Neues Kundenprojekt hinzufügen:**
+
+1. In Sanity ein Projekt anlegen: Titel, Kunde, Jahr, Kategorie, **Branche**, **Beschreibung**.
+2. Optional im Feld **„Stichwörter für Frag Achim“** Begriffe ergänzen, unter denen Leute nach dem
+   Projekt fragen könnten (Spitzname, Produkt, Ort, Art des Betriebs …).
+3. Veröffentlichen → nach dem nächsten Build kennt der Chat das Projekt.
+
+So funktioniert es technisch: Die Startseite lädt beim Build kompakte Projektdaten
+(`web/app/content/ask.server.ts`), `features/ask/projects.ts` macht daraus Chat-Themen. Bei
+Punktgleichstand gewinnt ein Projekt-Thema gegen ein allgemeines Thema. Fragen nach einem Aspekt
+(„Was hat Gute Stube gekostet?“) beantwortet weiterhin das Aspekt-Thema (Preis).
+
 ## Optional: echte KI als Backend
 
 `askConfig.endpoint` in `config.ts` kann auf einen **eigenen** Endpoint zeigen (z. B. `/api/ask`),

@@ -86,7 +86,7 @@ function fallbackProject(p: FallbackProject, locale: Locale): Project {
     ...fallbackSummary(p, locale),
     client: p.client,
     scope: pick(p.scope, locale),
-    industry: pick(p.industry, locale),
+    industry: p.industry ? pick(p.industry, locale) : undefined,
     software: p.software,
     description: pick(p.description, locale),
     content: [],

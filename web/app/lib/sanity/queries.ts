@@ -54,6 +54,14 @@ export const projectQuery = /* groq */ `
   }
 `;
 
+/** Kompakte Projektdaten für den Chat – beide Sprachen auf einmal (Felder als { de, en }). */
+export const askProjectsQuery = /* groq */ `
+  *[_type == "project" && defined(slug.current)]
+  | order(coalesce(sortOrder, 999) asc, year desc) {
+    "slug": slug.current, title, category, industry, description, client, year, askKeywords
+  }
+`;
+
 export const serviceQuery = /* groq */ `
   *[_type == "service" && page == $slug][0]{
     "title": coalesce(title[$locale], title.de),

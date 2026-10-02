@@ -49,6 +49,20 @@ Bausteine:
    Studio-Schema → GROQ in `web/app/lib/sanity/queries.ts` → Mapping in `web/app/content/*.server.ts`
    (+ Typ in `content/types.ts`, + Darstellung in der Komponente).
 
+## Projekte und der Chat „Frag Achim“
+
+Der Chat kennt alle Projekte automatisch (nach dem nächsten Build). Er nutzt dafür:
+
+| Feld                             | Wofür im Chat                                                    |
+| -------------------------------- | ---------------------------------------------------------------- |
+| Titel, Kunde                     | erkennt das Projekt („Erzähl mir von Gute Stube“)                |
+| Branche                          | „Hast du schon was für Gastronomie gemacht?“ → passende Projekte |
+| Kategorie, Jahr                  | steht in der Antwort                                             |
+| Beschreibung (erste zwei Sätze)  | Kurzantwort zum Projekt                                          |
+| **Stichwörter für „Frag Achim“** | weitere Begriffe, z. B. „Café“, „Foodtruck“, ein Produktname     |
+
+Details: [09-ask-widget.md → Kundenprojekte](09-ask-widget.md#kundenprojekte-im-chat).
+
 ## Bilder
 
 - Bilder werden in Sanity hochgeladen, die Website lädt sie **beim Build herunter** und liefert sie

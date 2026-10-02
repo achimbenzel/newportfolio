@@ -9,6 +9,7 @@ import {
 } from "react";
 import { Link } from "react-router";
 import { LogoMark3D } from "~/components/brand/LogoMark3D";
+import type { AskProject } from "~/content/types";
 import { Icon } from "~/components/ui/Icon";
 import { useLocale, useT } from "~/i18n";
 import { askConfig } from "./config";
@@ -22,7 +23,7 @@ import styles from "./AskWidget.module.css";
  * Verlauf erscheint im selben Fenster ÜBER dem Eingabefeld, Vorschläge darunter.
  * Antwortet auf Deutsch und Englisch (Sprache der Frage), komplett lokal.
  */
-export function AskWidget() {
+export function AskWidget({ projects }: { projects?: AskProject[] }) {
   const t = useT();
   const locale = useLocale();
   const chat = useSyncExternalStore(
@@ -39,7 +40,9 @@ export function AskWidget() {
 
   const hasHistory = chat.messages.length > 0;
   const chipLang = chat.chips?.lang ?? locale;
-  const chipIds = (chat.chips?.ids ?? defaultChips).filter((id) => getTopic(id)?.[chipLang].label);
+  const chipIds = (chat.chips?.ids ?? defaultChips).filter(
+    (id) => getTopic(id, projects)?.[chipLang].label,
+  );
   const canSend = !chat.busy && question.trim().length > 0;
 
   // Neue Inhalte → Verlauf nach unten scrollen (nur DOM, kein State)
@@ -57,7 +60,7 @@ export function AskWidget() {
 
   const send = () => {
     if (!canSend) return;
-    void chatStore.ask(question, { pageLocale: locale });
+    void chatStore.ask(question, { pageLocale: locale, projects });
     setQuestion("");
   };
 
@@ -75,13 +78,14 @@ export function AskWidget() {
   };
 
   const askTopic = (id: string) => {
-    const topic = getTopic(id);
+    const topic = getTopic(id, projects);
     if (!topic || chat.busy) return;
     focusChipsNext.current = true;
     void chatStore.ask(topic[chipLang].q ?? topic[chipLang].label ?? id, {
       pageLocale: locale,
       topicId: id,
       lang: chipLang,
+      projects,
     });
   };
 
@@ -121,6 +125,7 @@ export function AskWidget() {
         {/* Verlauf – klappt weich auf */}
         <div className={styles.panel} inert={!chat.open}>
           <div className={styles.panelInner}>
+            {/* tabIndex: Verlauf ist ohne sichtbaren Scrollbalken auch per Tastatur scrollbar */}
             <div
               id={logId}
               ref={logRef}
@@ -128,6 +133,8 @@ export function AskWidget() {
               role="log"
               aria-live="polite"
               aria-relevant="additions"
+              aria-label={t.ask.title}
+              tabIndex={0}
             >
               {chat.messages.map((m) => (
                 <Message key={m.id} message={m} />
@@ -180,7 +187,7 @@ export function AskWidget() {
             onClick={() => askTopic(id)}
             disabled={chat.busy}
           >
-            {getTopic(id)?.[chipLang].label}
+            {getTopic(id, projects)?.[chipLang].label}
           </button>
         ))}
       </div>
