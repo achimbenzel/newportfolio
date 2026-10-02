@@ -123,6 +123,18 @@ export function AskWidget({ content }: { content?: AskContent }) {
         role="group"
         aria-label={t.ask.suggestions}
       >
+        {replies.map((reply) => (
+          <button
+            key={reply}
+            type="button"
+            className={styles.option}
+            data-reply
+            onClick={() => sendReply(reply, options.lang)}
+          >
+            {reply}
+            <Icon name="arrowRight" size={14} className={styles.optionIcon} />
+          </button>
+        ))}
         {ids.map((id) => (
           <button
             key={id}
@@ -134,17 +146,6 @@ export function AskWidget({ content }: { content?: AskContent }) {
             {options.style === "list" && (
               <Icon name="arrowRight" size={14} className={styles.optionIcon} />
             )}
-          </button>
-        ))}
-        {replies.map((reply) => (
-          <button
-            key={reply}
-            type="button"
-            className={styles.option}
-            onClick={() => sendReply(reply, options.lang)}
-          >
-            {reply}
-            <Icon name="arrowRight" size={14} className={styles.optionIcon} />
           </button>
         ))}
       </div>

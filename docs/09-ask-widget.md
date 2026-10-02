@@ -15,14 +15,16 @@ passende Antwort. Dafür nutzt es ein paar Techniken, die es trotzdem „gesprä
   **zufällig** gewählt, nach dem Neuladen steht ggf. etwas anderes da. Die Uhrzeit gibt es erst im
   Browser, deshalb wird die Zeile nach dem Laden sanft eingeblendet. Läuft ein Gespräch, klappt sie
   weg; „Neuer Chat“ bringt sie zurück.
-- Großes, dunkles Eingabefenster mit Neon-Glow (`--color-neon`), unten links „Achim · Assistent“
-  mit Bildmarke, unten rechts der runde Senden-Button. `Enter` sendet, `Shift+Enter` = neue Zeile.
+- Großes, fast deckend weißes Fenster mit breitem, durchscheinendem Glas-Rahmen auf dem
+  Hintergrundfoto, unten links „Achim · Assistent“ mit Bildmarke, unten rechts der runde
+  Senden-Button. `Enter` sendet, `Shift+Enter` = neue Zeile.
 - Sobald gefragt wird, klappt der Verlauf **im selben Fenster über dem Eingabefeld** auf.
 - Chat-Bubbles: Achims Antworten **links** (dunkle Bubble, Avatar = Bildmarke `LogoMark3D`),
   die Fragen der Besucher **rechts** (Petrol-Bubble).
 - **Vorschläge im Fenster:** vor dem ersten Gespräch als Zeile unter dem Eingabefeld, danach unter
   der jeweils letzten Antwort (passen sich an). Fragt der Bot zurück („Meinst du …?“) oder ist er
   unsicher, stehen die Auswahlmöglichkeiten als klickbare Liste direkt unter seiner Nachricht.
+  Stellt er eine Ja/Nein-Frage, gibt es Buttons dafür („Ja, gern“ hervorgehoben, „Nein, danke“).
 - Über dem Fenster „Neuer Chat“ / „Schließen“, sobald es einen Verlauf gibt.
 
 ## Persönlichkeit
@@ -31,8 +33,15 @@ Der Bot spricht **als Achim in der Ich-Form** und **duzt**: freundlich, direkt u
 locker im Ton, aber professionell. Er ist ehrlich, wenn er etwas nicht weiß (→ andere Frage oder
 E-Mail), nutzt keine Floskeln und keine Emojis. Antworten: 1–3 Sätze, lieber auf eine Seite verlinken.
 
-**Transparenz:** Die Oberfläche zeigt „Achim · Assistent“, und auf „Bist du eine KI/ein Bot?“
-antwortet er ehrlich, dass hier ein kleines Programm in Achims Namen antwortet (Thema `bot`).
+**Transparenz mit Augenzwinkern:** Die Oberfläche zeigt „Achim · Assistent“. Auf „Bist du eine
+KI?“ kontert er erst mit einer Gegenfrage („Gegenfrage: Bist du eine?“) und sagt dann ehrlich, dass
+hier ein kleines Programm in Achims Namen antwortet. Für „Bist du ein Bot?“ und „Bist du ein
+Mensch?“ gibt es passende Varianten („Bist du einer?“) – Themen `bot`, `robot`, `human`. Auf die
+Gegenfrage kann man mit „Ja, erwischt“ / „Nein, bin ein Mensch“ antworten (`visitorAi`,
+`visitorHuman`).
+
+**Verkaufen, ohne aufdringlich zu sein:** Wer mit dem Bot schreibt, soll merken, dass Achim der
+Richtige für den Job ist – siehe [„Kannst du XY designen?“](#kannst-du-xy-designen--verkaufen).
 
 Damit er nicht wie ein Automat wirkt, können Antworten **Varianten** haben (Liste statt Text) –
 dann wird zufällig gewählt. Die Persönlichkeit steht auch oben in `knowledge.ts`; neue Texte bitte
@@ -56,7 +65,7 @@ Frage ──▶ aufbereiten ──▶ Themen bewerten ──▶ entscheiden ─�
 | `aspect`     | Dauer, Preis, Korrekturen, Ablauf, Kontakt …  | **Frage nach etwas** rund um ein Projekt – geht vor |
 | `general`    | Über Achim, Alter, Programme, Hobbys …        | alles andere                                        |
 
-### Die fünf „Intelligenz“-Bausteine
+### Die „Intelligenz“-Bausteine
 
 1. **Aspekt × Fachgebiet (Facetten)** – „Wie lange dauert eine Logo-Animation?“ ist eine Frage
    nach der _Dauer_ für das Fachgebiet _Logo-Animation_. Hat das Aspekt-Thema eine passende
@@ -81,6 +90,11 @@ Frage ──▶ aufbereiten ──▶ Themen bewerten ──▶ entscheiden ─�
 5. **Beispielfragen statt langer Stichwortlisten** – jedes Thema hat `examples` (DE + EN). Daraus
    werden zusätzliche Stichwörter abgeleitet (ohne Füllwörter und ohne Wörter, die einem anderen
    Thema gehören), und **jede Beispielfrage wird automatisch als Test geprüft**.
+6. **Anfrage-Absicht & Leistungskatalog** – „Kannst du …?“, „Ich brauche …“, „Can you …?“ werden
+   als Anfrage erkannt (nicht nach einem Fragewort wie „Was kannst du …?“ und nicht bei „Kannst du
+   mir sagen/zeigen …“). Dann sucht der Bot das gemeinte Ding im Leistungskatalog – auch mehrere
+   auf einmal („Logo und Visitenkarten“) – und antwortet mit Ja / teilweise / kommt drauf an / Nein.
+   Details unten.
 
 Weitere Regeln:
 
@@ -117,12 +131,45 @@ Beispiel-Wort) gibt es Vorschläge statt einer geratenen Antwort.
 ### Ja/Nein und Auswahl
 
 - Ein Thema kann am Ende eine **Ja/Nein-Frage** stellen (`offer` in `knowledge.ts`): „Reist du
-  gern?“ → „… Möchtest du ein paar Bilder sehen?“ → „Ja, gerne“ zeigt die Galerie. Auch Kontakt
-  („Soll ich dir helfen, deine Anfrage vorzubereiten?“) und Off-Topic-Fragen („Soll ich dir
-  erzählen, was ich anbiete?“) bieten etwas an. „Nein“ wird freundlich beantwortet.
+  gern?“ → „… Möchtest du ein paar Bilder sehen?“ → „Ja, gerne“ zeigt die Galerie. Auch Kontakt,
+  Leistungen, Preise, „Warum du?“ („Wollen wir über dein Projekt sprechen?“) und Off-Topic-Fragen
+  bieten etwas an. „Nein“ wird freundlich beantwortet.
+- Unter der Frage stehen Buttons „Ja, gern“ / „Nein, danke“ (eigene Beschriftung: `offer.replies`).
+  Mit `offer.no` gibt es auch auf „Nein“ eine eigene Antwort (Beispiel: KI-Gegenfrage). Steht die
+  Frage schon in der Antwort selbst, bleibt der Text in `offer.de`/`offer.en` weg.
 - Nach einer **Rückfrage oder Vorschlagsliste** versteht der Bot „das erste“, „Nummer zwei“,
   „the last one“ usw.
 - Angebote gelten nur für die direkt folgende Nachricht. Wörter dafür: `replyWords` in `knowledge.ts`.
+
+### „Kannst du XY designen?“ – Verkaufen
+
+Der **Leistungskatalog** `deliverables` in `knowledge.ts` listet Dinge, nach denen Leute fragen –
+mit Status und passendem Thema:
+
+| Status   | Beispiel                      | Antwort                                                                                                     |
+| -------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `yes`    | Logo, T-Shirt, Flyer, Reels   | „Ja – …“ + kurzes Argument + „Soll ich dir helfen, eine Anfrage vorzubereiten?“                             |
+| `partly` | App programmieren, live VJ    | eigene Antwort („nicht selbst – aber das UI/UX-Design“) + Angebot                                           |
+| `maybe`  | Tattoo, Buchcover, Icons      | „Das ist nicht mein Schwerpunkt – ob es passt, hängt vom Projekt ab.“ + „Magst du mir kurz davon erzählen?“ |
+| `no`     | Onlineshop, Fotografie, Druck | ehrliche Antwort mit Alternative, ohne Verkaufsfrage                                                        |
+
+- **Mehrere Dinge:** „Kannst du Flyer gestalten und drucken?“ → „Poster & Flyer? Na klar …
+  Drucken lasse ich selbst nichts – druckfertige Dateien bekommst du aber …“.
+- **Genauere Treffer gewinnen:** „Buchcover“ vor „Cover“, „Logo-Animation“ vor „Logo“.
+- **Unbekanntes Ding** mit Gestaltungs-Verb („Kannst du mir eine Hundehütte designen?“) →
+  „„Hundehütte“ steht so nicht auf meiner Liste – mein Schwerpunkt sind …“ + Angebot.
+- **Kurzes Argument** (`askTexts.sales.pitch`: direkter Kontakt, über 50 Kunden, kostenloses
+  Erstgespräch) höchstens **einmal pro Gespräch** und nur, wenn die Antwort kurz ist.
+- **„Ja“** startet die geführte Anfrage **mit dem Projekt schon eingetragen** („Super! Für dein
+  Projekt (Merch) brauche ich nur noch zwei, drei Angaben …“). „Ja, ein Logo“ auf „Hast du schon
+  ein Projekt im Kopf?“ trägt das Logo ebenfalls ein.
+- Eine klare Frage **nach** etwas geht vor: „Kannst du ein Logo bis morgen machen?“ → Eilaufträge,
+  „Ich brauche ein Logo – was kostet das?“ → Preis.
+- **Verkaufsthemen** mit Angebot einer Anfrage: „Warum du?“ (`whyMe`), „Bist du der Richtige für
+  mein Projekt?“ (`fit`), „Das ist mir zu teuer“ (`lowBudget`), „Vorteil gegenüber einer Agentur?“
+  (`vsAgency`), Leistungen, Preise.
+- **Nichts erfinden:** Was Achim nicht ausdrücklich anbietet, kommt als `maybe` in den Katalog.
+- Logik: `capability.ts` (Erkennung), `engine.ts` (`answerCapability`, `sell`).
 
 ### Geführte Anfrage („Projekt anfragen“)
 
@@ -135,6 +182,8 @@ Beschreibung. Antwortmöglichkeiten gibt es zum Anklicken, frei tippen geht imme
 - Budget unter 300 € → Hinweis „ab 300 €“; ab 750 € → Hinweis auf den Call (Grenzen: `profile`).
 - „Abbrechen“ beendet die Anfrage; eine Zwischenfrage („Wie lange dauert das?“) wird beantwortet,
   danach geht es mit der Anfrage weiter.
+- Ist das Projekt schon bekannt („Kannst du ein T-Shirt designen?“ → „Ja“), entfällt die erste
+  Frage (`askTexts[lang].inquiry.prefilled`).
 - Texte und Antwortmöglichkeiten: `askTexts[lang].inquiry`, Ablauf: `inquiry.ts`.
 
 ### Suche in den Website-Texten
@@ -176,6 +225,7 @@ eigenen Server** gehen – damit die Wissensbasis mit echten Fragen wächst.
 | `engine.ts`         | Antwortlogik (Aufbereitung, Gewichtung, Entscheidung, Gedächtnis), Link-Parser   |
 | `content.ts`        | macht aus Website-Inhalten (Projekte, Leistungen) automatisch Chat-Wissen        |
 | `text.ts`           | Textaufbereitung: Normalisieren, Synonyme, Wortstamm, Tippfehler                 |
+| `capability.ts`     | „Kannst du XY?“: Anfrage-Absicht + Leistungskatalog durchsuchen                  |
 | `inquiry.ts`        | geführte Anfrage (Fragen → fertige E-Mail/WhatsApp-Nachricht)                    |
 | `search.ts`         | Suche in den Website-Texten (letzte Rettung vor „weiß ich nicht“)                |
 | `log.ts`            | unbeantwortete Fragen anonym an den eigenen Server (optional, standardmäßig aus) |
@@ -283,6 +333,9 @@ Eintrag in `stemExceptions`.
 4. **Neues Thema** → eindeutige `id`, passende `kind`, Beispielfragen + Antwort DE und EN,
    `followUps`. Startvorschlag? → `id` in `defaultChips`.
 5. **Antwort ändern** → nur `a` anpassen, im Ton der Persönlichkeit, kurz (1–3 Sätze).
+6. **„Kannst du XY?“ wird nicht verstanden** → Ding in `deliverables` eintragen (passender
+   Status, Thema, Begriffe DE + EN, Bezeichnung). Nur was Achim anbietet als `yes`, Unklares als
+   `maybe`. Der Test prüft, dass jeder Begriff seinen Eintrag findet.
 
 ### Testen
 

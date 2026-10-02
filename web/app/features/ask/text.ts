@@ -112,6 +112,47 @@ export function prepare(text: string, fuzzy = true): string[] {
     });
 }
 
+/** Lücke in einem Stichwort („wie läuft * ab“) – steht für 0 bis MAX_GAP Wörter */
+export const GAP = "*";
+const MAX_GAP = 3;
+
+/** Stichwort aufbereiten (ohne Tippfehler-Suche); `*` bleibt als Lücke erhalten */
+export function prepareKeyword(keyword: string): string[] {
+  const tokens = keyword
+    .split(GAP)
+    .map((part) => prepare(part, false))
+    .flatMap((part, index) => (index === 0 ? part : [GAP, ...part]));
+  registerKnownWords(tokens.filter((token) => token !== GAP));
+  return tokens;
+}
+
+/**
+ * Passt der Ausdruck ab Position `t`? Lücken überspringen bis zu MAX_GAP Wörter.
+ * Ergebnis: Positionen der getroffenen Wörter (ohne Lücken) oder null.
+ */
+function matchAt(tokens: string[], phrase: string[], t: number, p = 0): number[] | null {
+  if (p === phrase.length) return [];
+  if (phrase[p] === GAP) {
+    for (let skip = 0; skip <= MAX_GAP && t + skip <= tokens.length; skip++) {
+      const rest = matchAt(tokens, phrase, t + skip, p + 1);
+      if (rest) return rest;
+    }
+    return null;
+  }
+  if (tokens[t] !== phrase[p]) return null;
+  const rest = matchAt(tokens, phrase, t + 1, p + 1);
+  return rest && [t, ...rest];
+}
+
+/** Erste Fundstelle eines (Mehrwort-)Ausdrucks in der Frage – Positionen oder null */
+export function findPhrase(tokens: string[], phrase: string[]): number[] | null {
+  for (let t = 0; t < tokens.length; t++) {
+    const match = matchAt(tokens, phrase, t);
+    if (match) return match;
+  }
+  return null;
+}
+
 /** Ist die (kurze) Nachricht eine dieser Antworten? „ja“, „ja bitte, gerne“, „nein danke“ … */
 export function matchesReply(message: string, phrases: string[], maxWords = 4): boolean {
   const normalized = normalize(message);

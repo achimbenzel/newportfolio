@@ -410,6 +410,22 @@
   animation-delay: 0.16s;
 }
 
+/* Ja/Nein-Frage des Bots: „Ja“ hervorgehoben (führt meist zur Anfrage) */
+.options[data-style="chips"] .option[data-reply]:first-child {
+  color: var(--color-on-accent);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.options[data-style="chips"] .option[data-reply]:first-child:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.options[data-style="chips"] .option[data-reply]:first-child .optionIcon {
+  color: currentColor;
+}
+
 /* Rückfrage / Unsicherheit: Auswahl als Liste untereinander */
 .options[data-style="list"] {
   flex-direction: column;

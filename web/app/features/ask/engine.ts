@@ -12,11 +12,14 @@
  * 5. Entscheiden   Aspekt × Fachgebiet → gezielte Antwort („Wie lange dauert eine Logo-Animation?“),
  *                  Gesprächsgedächtnis („Und was kostet das?“), Rückfrage bei Gleichstand,
  *                  Vorschläge statt Raten bei unsicheren Treffern
+ * 6. Verkaufen     „Kannst du XY designen?“ → Leistungskatalog (capability.ts): ja/teilweise/kommt
+ *                  drauf an/nein, kurzes Argument und direkt das Angebot einer Anfrage
  */
 import { site } from "~/config/site";
 import type { AskContent } from "~/content/types";
 import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
+import { askedObject, findDeliverables, hasDesignVerb, hasRequestIntent } from "./capability";
 import { applyContent, buildContentTopics, fill, isProjectTopic, joinList } from "./content";
 import type { GalleryId } from "./galleries";
 import {
@@ -28,7 +31,15 @@ import {
   type InquiryState,
 } from "./inquiry";
 import { searchContent } from "./search";
-import { distance, matchesReply, normalize, prepare, registerKnownWords } from "./text";
+import {
+  distance,
+  findPhrase,
+  GAP,
+  matchesReply,
+  normalize,
+  prepare,
+  prepareKeyword,
+} from "./text";
 
 export { normalize, prepare, stem } from "./text";
 import {
@@ -42,6 +53,7 @@ import {
   referenceWords,
   replyWords,
   topics,
+  type Deliverable,
   type Text,
   type Topic,
 } from "./knowledge";
@@ -54,6 +66,12 @@ export type AskContext = {
   aspect?: string;
   /** der Bot hat eine Ja/Nein-Frage gestellt – bei „Ja“ kommt dieses Thema */
   offer?: string;
+  /** … und bei „Nein“ dieses (sonst eine kurze Bestätigung) */
+  offerNo?: string;
+  /** Projekt, das bei „Ja“ schon in die geführte Anfrage eingetragen wird („Logo-Design“) */
+  inquiryType?: string;
+  /** Verkaufsargument wurde in diesem Gespräch schon genannt (nicht wiederholen) */
+  pitched?: boolean;
   /** der Bot hat eine Auswahl angeboten – „das erste“ → choices[0] */
   choices?: string[];
   /** laufende geführte Anfrage */
@@ -112,20 +130,6 @@ type Knowledge = {
 };
 
 const filler = new Set(fillerWords.flatMap((word) => prepare(word, false)));
-
-/** Lücke in einem Stichwort („wie läuft * ab“) – steht für 0 bis MAX_GAP Wörter */
-const GAP = "*";
-const MAX_GAP = 3;
-
-/** Stichwort aufbereiten (ohne Tippfehler-Suche); `*` bleibt als Lücke erhalten */
-function prepareKeyword(keyword: string): string[] {
-  const tokens = keyword
-    .split(GAP)
-    .map((part) => prepare(part, false))
-    .flatMap((part, index) => (index === 0 ? part : [GAP, ...part]));
-  registerKnownWords(tokens.filter((token) => token !== GAP));
-  return tokens;
-}
 
 function buildKnowledge(all: Topic[]): Knowledge {
   const explicit = all.map((topic) => {
@@ -205,32 +209,6 @@ const CLOSE = 0.85;
 const SECOND = 0.7;
 /** so viel besser muss ein allgemeines Thema sein, um ein sicheres Fachgebiet zu schlagen */
 const GENERAL_LEAD = 1.5;
-
-/**
- * Passt der Ausdruck ab Position `t`? Lücken überspringen bis zu MAX_GAP Wörter.
- * Ergebnis: Positionen der getroffenen Wörter (ohne Lücken) oder null.
- */
-function matchAt(tokens: string[], phrase: string[], t: number, p = 0): number[] | null {
-  if (p === phrase.length) return [];
-  if (phrase[p] === GAP) {
-    for (let skip = 0; skip <= MAX_GAP && t + skip <= tokens.length; skip++) {
-      const rest = matchAt(tokens, phrase, t + skip, p + 1);
-      if (rest) return rest;
-    }
-    return null;
-  }
-  if (tokens[t] !== phrase[p]) return null;
-  const rest = matchAt(tokens, phrase, t + 1, p + 1);
-  return rest && [t, ...rest];
-}
-
-function findPhrase(tokens: string[], phrase: string[]): number[] | null {
-  for (let t = 0; t < tokens.length; t++) {
-    const match = matchAt(tokens, phrase, t);
-    if (match) return match;
-  }
-  return null;
-}
 
 /** Punkte für ein eingetragenes Stichwort gegen ein Wort der Frage. */
 function wordPoints(keyword: string, token: string): number {
@@ -436,7 +414,11 @@ function build(
 }
 
 /** Nur das Langzeit-Gedächtnis behalten (Angebote/Auswahl gelten immer nur für eine Antwort) */
-const keep = ({ subject, aspect }: AskContext): AskContext => ({ subject, aspect });
+const keep = ({ subject, aspect, pitched }: AskContext): AskContext => ({
+  subject,
+  aspect,
+  pitched,
+});
 
 /** Antwort der geführten Anfrage in eine AskAnswer verpacken */
 function inquiryAnswer(reply: InquiryReply, context: AskContext, env: Env): AskAnswer {
@@ -445,6 +427,14 @@ function inquiryAnswer(reply: InquiryReply, context: AskContext, env: Env): AskA
   return build("inquiry", reply.text, followUps, next, env, "inquiry", {
     replies: reply.replies,
   });
+}
+
+/** Ja/Nein-Frage an die Antwort hängen: Gedächtnis + Buttons „Ja, gern“ / „Nein, danke“ */
+function withOffer(
+  next: AskContext,
+  offer: { yes: string; no?: string; inquiryType?: string },
+): AskContext {
+  return { ...next, offer: offer.yes, offerNo: offer.no, inquiryType: offer.inquiryType };
 }
 
 /** Antwort auf ein Thema (+ optional eine zweite Frage aus derselben Nachricht). */
@@ -456,8 +446,10 @@ function answerTopic(
   second?: Reply,
 ): AskAnswer {
   const { topic } = reply;
-  // „Projekt anfragen“ startet die geführte Anfrage
-  if (topic.id === "inquiry") return inquiryAnswer(startInquiry(env.lang), context, env);
+  // „Projekt anfragen“ startet die geführte Anfrage – ggf. mit schon bekanntem Projekt
+  if (topic.id === "inquiry") {
+    return inquiryAnswer(startInquiry(env.lang, context.inquiryType), context, env);
+  }
 
   let text = render(reply, k, env);
   if (second) text += askTexts[env.lang].also + firstSentence(render(second, k, env));
@@ -473,14 +465,121 @@ function answerTopic(
   else if (topic.kind === "aspect")
     next = { subject: reply.subject ?? context.subject, aspect: topic.id };
   else if (topic.kind === "general") next = {};
+  next.pitched = context.pitched;
 
-  // Ja/Nein-Angebot am Ende („Möchtest du Bilder sehen?“)
+  // Ja/Nein-Frage am Ende („Möchtest du Bilder sehen?“) – oder schon in der Antwort selbst
+  let replies: string[] | undefined;
   if (topic.offer && !second) {
-    text += ` ${topic.offer[env.lang]}`;
-    next.offer = topic.offer.yes;
+    const question = topic.offer[env.lang];
+    if (question) text += ` ${question}`;
+    next = withOffer(next, topic.offer);
+    replies = topic.offer.replies?.[env.lang] ?? askTexts[env.lang].offerReplies;
   }
 
-  return build("answer", text, followUps, next, env, topic.id, { gallery: topic.gallery });
+  return build("answer", text, followUps, next, env, topic.id, {
+    gallery: topic.gallery,
+    replies,
+  });
+}
+
+/* ── 6. Verkaufen: „Kannst du XY designen?“ ───────────────────────── */
+
+const capabilityChips = ["services", "work", "contact"];
+
+/**
+ * Verkaufsargument (einmal pro Gespräch, nur nach einem „Ja“ und bei kurzen Antworten)
+ * + Angebot, direkt eine Anfrage vorzubereiten – mit dem Projekt schon eingetragen.
+ */
+function sell(
+  text: string,
+  next: AskContext,
+  context: AskContext,
+  env: Env,
+  { inquiryType, sure }: { inquiryType?: string; sure: boolean },
+): { text: string; context: AskContext; replies: string[] } {
+  const texts = askTexts[env.lang];
+  // „Kommt aufs Projekt an“ → kein Werbesatz, sondern „Magst du mir davon erzählen?“
+  const pitch = sure && !context.pitched && text.length < 280;
+  const withPitch = pitch ? `${text} ${pickText(texts.sales.pitch, env.random)}` : text;
+  const question = pickText(sure ? texts.sales.offer : texts.sales.ask, env.random);
+  return {
+    text: `${withPitch} ${question}`,
+    context: withOffer(
+      { ...next, pitched: context.pitched || pitch },
+      { yes: "inquiry", inquiryType },
+    ),
+    replies: texts.offerReplies,
+  };
+}
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** Bezeichnungen als Liste („Logo-Design und Merch“) */
+const labels = (items: Deliverable[], lang: Locale) =>
+  joinList(
+    items.map((item) => item[lang].label),
+    lang,
+  );
+
+/** Antwort auf „Kannst du …?“ mit Dingen aus dem Leistungskatalog */
+function answerCapability(
+  found: Deliverable[],
+  context: AskContext,
+  k: Knowledge,
+  env: Env,
+): AskAnswer {
+  const { lang, random } = env;
+  const texts = askTexts[lang].can;
+  const of = (status: Deliverable["status"]) => found.filter((item) => item.status === status);
+  const [yes, partly, maybe, no] = [of("yes"), of("partly"), of("maybe"), of("no")];
+
+  /** eigene Antwort des Eintrags – sonst die Antwort seines Themas */
+  const own = (item: Deliverable) => {
+    const text = item[lang].a;
+    if (text) return pickText(text, random);
+    const topic = item.topic ? k.byId.get(item.topic) : undefined;
+    return topic ? render({ topic }, k, env) : "";
+  };
+
+  const list = (template: string, items: Deliverable[]) =>
+    capitalize(fill(template, { list: labels(items, lang) }));
+  const parts: string[] = [];
+  if (yes.length === 1 && found.length === 1) parts.push(own(yes[0]!));
+  else if (yes.length > 0) parts.push(list(yes.length === 1 ? texts.one : texts.many, yes));
+  for (const item of [...partly, ...no]) parts.push(own(item));
+  if (maybe.length > 0) parts.push(list(texts.maybe, maybe));
+  const text = parts.filter(Boolean).join(" ");
+
+  // Thema fürs Gedächtnis und die Vorschläge: das erste mit Thema (Angebotenes zuerst)
+  const main = [...yes, ...partly, ...no]
+    .map((item) => (item.topic ? k.byId.get(item.topic) : undefined))
+    .find((topic) => topic);
+  const next: AskContext =
+    main?.kind === "subject" ? { subject: main.id, pitched: context.pitched } : keep(context);
+  const followUps = main?.followUps ?? capabilityChips;
+
+  const offered = [...yes, ...partly, ...maybe];
+  if (offered.length === 0) {
+    return build("answer", text, followUps, next, env, main?.id ?? null);
+  }
+  const sale = sell(text, next, context, env, {
+    inquiryType: labels(offered, lang),
+    sure: yes.length + partly.length > 0,
+  });
+  return build("answer", sale.text, followUps, sale.context, env, main?.id ?? null, {
+    replies: sale.replies,
+  });
+}
+
+/** „Kannst du mir eine Hundehütte designen?“ – nicht im Katalog: ehrlich, aber offen */
+function answerUnknownCapability(question: string, context: AskContext, env: Env): AskAnswer {
+  const texts = askTexts[env.lang].can;
+  const object = askedObject(question);
+  const text = object ? fill(texts.unknown, { object }) : texts.unknownPlain;
+  const sale = sell(text, keep(context), context, env, { inquiryType: object, sure: false });
+  return build("fallback", sale.text, capabilityChips, sale.context, env, null, {
+    replies: sale.replies,
+  });
 }
 
 const noThanks = (context: AskContext, env: Env) =>
@@ -553,13 +652,26 @@ export function answerLocally(question: string, options: AskOptions): AskAnswer 
   // Antwort auf eine Ja/Nein-Frage des Bots („Möchtest du Bilder sehen?“ → „Ja, gerne“)
   const offered = context.offer ? k.byId.get(context.offer) : undefined;
   if (matchesReply(question, replyWords.yes)) {
-    if (offered) return answerTopic({ topic: offered, subject: context.subject }, context, k, env);
+    if (offered) {
+      // „Ja, ein Logo“ auf „Hast du schon ein Projekt im Kopf?“ → Projekt gleich eintragen
+      const named = findDeliverables(prepare(question));
+      const inquiryType =
+        context.inquiryType ?? (named.length > 0 ? labels(named, lang) : undefined);
+      return answerTopic(
+        { topic: offered, subject: context.subject },
+        { ...context, inquiryType },
+        k,
+        env,
+      );
+    }
     if (context.choices?.length === 1) {
       const only = k.byId.get(context.choices[0]!);
       if (only) return answerTopic({ topic: only }, context, k, env);
     }
   }
   if (matchesReply(question, replyWords.no) && (offered || context.choices)) {
+    const declined = context.offerNo ? k.byId.get(context.offerNo) : undefined;
+    if (declined) return answerTopic({ topic: declined }, context, k, env);
     return noThanks(context, env);
   }
 
@@ -568,6 +680,33 @@ export function answerLocally(question: string, options: AskOptions): AskAnswer 
   const candidates = ranked.filter((entry) => entry.topic.kind !== "smallTalk");
   const smallTalk = ranked.find((entry) => entry.topic.kind === "smallTalk");
   const [top] = candidates;
+
+  // „Kannst du XY designen?“ / „Ich brauche XY“ → Leistungskatalog. Eine klare Frage NACH etwas
+  // („Kannst du ein Logo bis morgen machen?“) oder ein deutlich besser passendes allgemeines
+  // Thema („Do you use AI to make logos?“) geht vor.
+  if (hasRequestIntent(question)) {
+    const found = findDeliverables(tokens);
+    const strongAspect = candidates.find(
+      (entry) =>
+        entry.topic.kind === "aspect" &&
+        isStrong(entry) &&
+        !found.some((item) => item.topic === entry.topic.id),
+    );
+    const bestSubject = candidates.find((entry) => entry.topic.kind === "subject")?.score ?? 0;
+    const strongGeneral = candidates.find(
+      (entry) =>
+        entry.topic.kind === "general" &&
+        isStrong(entry) &&
+        entry.score >= GENERAL_LEAD * Math.max(bestSubject, STRONG) &&
+        !found.some((item) => item.topic === entry.topic.id),
+    );
+    if (found.length > 0 && !strongAspect && !strongGeneral) {
+      return answerCapability(found, context, k, env);
+    }
+    if (found.length === 0 && hasDesignVerb(question) && !isStrong(top)) {
+      return answerUnknownCapability(question, context, env);
+    }
+  }
 
   // Smalltalk („Hallo“, „Wie geht’s?“) nur, wenn nichts Inhaltliches sicher erkannt wurde
   if (smallTalk && !isStrong(top)) return answerTopic({ topic: smallTalk.topic }, context, k, env);

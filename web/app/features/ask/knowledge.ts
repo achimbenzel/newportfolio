@@ -5,8 +5,17 @@
  * Der Bot spricht ALS ACHIM in der Ich-Form und duzt. Freundlich, direkt und auf den Punkt –
  * locker im Ton, aber professionell. Ehrlich, wenn er etwas nicht weiß (→ E-Mail oder andere
  * Frage), keine Floskeln, keine Emojis, ab und zu ein Augenzwinkern. Antworten: 1–3 Sätze.
- * Transparenz: Die Oberfläche zeigt „Assistent“, und auf „Bist du eine KI/ein Bot?“ sagt er
- * ehrlich, dass hier ein Programm in Achims Namen antwortet (Thema „bot“).
+ * Transparenz: Die Oberfläche zeigt „Assistent“, und auf „Bist du eine KI/ein Bot/ein Mensch?“
+ * kontert er erst mit einem Augenzwinkern („Gegenfrage: Bist du eine?“) und sagt dann ehrlich,
+ * dass hier ein Programm in Achims Namen antwortet (Themen „bot“, „robot“, „human“).
+ *
+ * ── VERKAUF ───────────────────────────────────────────────────────────────────────
+ * Wer mit dem Bot schreibt, soll merken: Achim ist der Richtige für den Job. Deshalb:
+ * - „Kannst du XY designen?“ → Leistungskatalog `deliverables` (ja / teilweise / kommt drauf an /
+ *   nein), danach ein kurzes Argument (`askTexts.sales.pitch`, einmal pro Gespräch) und das
+ *   Angebot, direkt eine Anfrage vorzubereiten – mit dem Projekt schon eingetragen.
+ * - Themen wie „Warum du?“, „Bist du der Richtige?“, „Zu teuer“ enden mit einer Ja/Nein-Frage,
+ *   die zur geführten Anfrage führt (`offer: { yes: "inquiry" }`).
  *
  * ── AUFBAU EINES THEMAS ─────────────────────────────────────────────────────────
  * - id        eindeutiger Schlüssel
@@ -54,8 +63,16 @@ export type Topic = {
   followUps: string[];
   parent?: string;
   facets?: Record<string, Record<Locale, Text>>;
-  /** Ja/Nein-Angebot am Ende der Antwort („Möchtest du Bilder sehen?“) – bei „Ja“ folgt `yes` */
-  offer?: { yes: string } & Record<Locale, string>;
+  /**
+   * Ja/Nein-Frage am Ende der Antwort („Möchtest du Bilder sehen?“) – bei „Ja“ folgt das Thema
+   * `yes`, bei „Nein“ das Thema `no` (sonst eine kurze Bestätigung). Ohne Text pro Sprache steht
+   * die Frage schon in der Antwort selbst. `replies` = eigene Beschriftung der Ja/Nein-Buttons.
+   */
+  offer?: {
+    yes: string;
+    no?: string;
+    replies?: Record<Locale, [yes: string, no: string]>;
+  } & Partial<Record<Locale, string>>;
   /** Bildergalerie unter der Antwort (siehe galleries.ts) */
   gallery?: GalleryId;
 } & Record<Locale, TopicText>;
@@ -80,6 +97,25 @@ export const askTexts: Record<
     birthdayToday: string;
     /** Antwort auf „Nein“ nach einem Angebot */
     noThanks: Text;
+    /** Buttons unter einer Ja/Nein-Frage des Bots */
+    offerReplies: [yes: string, no: string];
+    /* ── Verkauf: nach „Kannst du …?“ / „Ich brauche …“ ── */
+    sales: {
+      /** kurzes Argument, warum ich der Richtige bin – höchstens einmal pro Gespräch */
+      pitch: Text;
+      /** Abschlussfrage – bei „Ja“ startet die geführte Anfrage */
+      offer: Text;
+      /** Abschlussfrage, wenn es aufs Projekt ankommt („Tattoo?“, „Hundehütte?“) */
+      ask: Text;
+    };
+    /* ── Leistungskatalog (deliverables): {list} = Bezeichnungen, {object} = Gefragtes ── */
+    can: {
+      one: string;
+      many: string;
+      maybe: string;
+      unknown: string;
+      unknownPlain: string;
+    };
     /** Treffer in den Website-Texten: {title} {snippet} {link} */
     searchHit: string;
     /* ── Geführte Anfrage (inquiry.ts) ── */
@@ -97,6 +133,8 @@ export const askTexts: Record<
       mailIntro: string;
       mailOutro: string;
       notSpecified: string;
+      /** Start mit schon bekanntem Projekt („Kannst du ein Logo …?“ → „Ja“): {type} */
+      prefilled: string;
     };
     /* ── Vorlagen für automatisch erzeugte Antworten (content.ts) ── */
     projects: string;
@@ -135,6 +173,29 @@ export const askTexts: Record<
       "Alles klar! Frag mich gern etwas anderes.",
       "Kein Problem – womit kann ich dir sonst helfen?",
     ],
+    offerReplies: ["Ja, gern", "Nein, danke"],
+    sales: {
+      pitch: [
+        "Du arbeitest dabei direkt mit mir – ohne Agentur oder Projektmanager dazwischen.",
+        "Über 50 Kunden aus Europa, Amerika und Asien haben mir ihre Projekte schon anvertraut.",
+        "Das Erstgespräch ist kostenlos und unverbindlich.",
+      ],
+      offer: [
+        "Soll ich dir helfen, eine Anfrage vorzubereiten?",
+        "Wollen wir direkt loslegen? Ich stelle dir nur ein paar kurze Fragen.",
+      ],
+      ask: ["Magst du mir kurz davon erzählen?", "Erzählst du mir kurz, worum es geht?"],
+    },
+    can: {
+      one: "{list}? Na klar – das gehört zu meinen Leistungen.",
+      many: "{list}? Na klar – das gehört alles zu meinen Leistungen.",
+      maybe:
+        "{list}: Das ist nicht mein Schwerpunkt – ob es passt, hängt vom Projekt ab. Ich sage dir aber ehrlich, ob ich der Richtige dafür bin.",
+      unknown:
+        "„{object}“ steht so nicht auf meiner Liste – mein Schwerpunkt sind Branding & Logos, Motion Design und Musik-Visuals. Ob es trotzdem passt, hängt vom Projekt ab, und ich sage dir ehrlich, ob ich der Richtige bin.",
+      unknownPlain:
+        "Das steht so nicht auf meiner Liste – mein Schwerpunkt sind Branding & Logos, Motion Design und Musik-Visuals. Ob es trotzdem passt, hängt vom Projekt ab, und ich sage dir ehrlich, ob ich der Richtige bin.",
+    },
     searchHit:
       "Dazu habe ich auf der Seite „{title}“ etwas gefunden: „{snippet}“ [Mehr dazu]({link})",
     inquiry: {
@@ -184,6 +245,8 @@ export const askTexts: Record<
       mailIntro: "Hallo Achim,\n\nich interessiere mich für ein Projekt mit dir:\n",
       mailOutro: "\nViele Grüße\n",
       notSpecified: "keine Angabe",
+      prefilled:
+        "Super! Für dein Projekt ({type}) brauche ich nur noch zwei, drei Angaben – danach bekommst du eine fertige Nachricht an mich. ",
     },
     /** Antwort auf „Welche Projekte …?“, sobald es Projekte gibt – {list} = Projekte mit Links */
     projects:
@@ -235,6 +298,29 @@ export const askTexts: Record<
       "Alright! Feel free to ask me something else.",
       "No problem – what else can I help you with?",
     ],
+    offerReplies: ["Yes, please", "No, thanks"],
+    sales: {
+      pitch: [
+        "You work directly with me – no agency or project manager in between.",
+        "Over 50 clients from Europe, America and Asia have already trusted me with their projects.",
+        "The first conversation is free and without obligation.",
+      ],
+      offer: [
+        "Shall I help you put together an inquiry?",
+        "Want to get started right away? I'll just ask you a few quick questions.",
+      ],
+      ask: ["Want to tell me a bit more about it?", "Care to tell me briefly what it's about?"],
+    },
+    can: {
+      one: "{list}? Absolutely – that's part of what I do.",
+      many: "{list}? Absolutely – that's all part of what I do.",
+      maybe:
+        "{list}: that's not my main focus – whether it fits depends on the project. But I'll tell you honestly whether I'm the right person for it.",
+      unknown:
+        "“{object}” isn't exactly on my list – my focus is branding & logos, motion design and music visuals. Whether it still fits depends on the project, and I'll tell you honestly whether I'm the right person.",
+      unknownPlain:
+        "That isn't exactly on my list – my focus is branding & logos, motion design and music visuals. Whether it still fits depends on the project, and I'll tell you honestly whether I'm the right person.",
+    },
     searchHit:
       "I found something about that on the page “{title}”: “{snippet}” [Read more]({link})",
     inquiry: {
@@ -284,6 +370,8 @@ export const askTexts: Record<
       mailIntro: "Hi Achim,\n\nI'm interested in a project with you:\n",
       mailOutro: "\nBest regards\n",
       notSpecified: "not specified",
+      prefilled:
+        "Great! For your project ({type}) I just need a few more details – then you'll get a ready-made message to me. ",
     },
     projects:
       "For example {list}. You'll find all projects on the [Work page]({base}/work) and even more work on {social:behance}.",
@@ -1146,6 +1234,725 @@ export const synonyms: string[][] = [
   ],
 ];
 
+/* ── „Kannst du XY designen?“ – Anfrage-Absicht und Leistungskatalog ─────────── */
+
+/**
+ * Anfrage-Absicht: Mit diesen Wendungen fragt jemand nach einer Leistung („Kannst du …?“,
+ * „Ich brauche …“). Steht davor ein Fragewort („Was kannst du alles?“), zählt es nicht.
+ */
+export const requestPhrases = [
+  "kannst du",
+  "könntest du",
+  "kann man bei dir",
+  "kann ich bei dir",
+  "machst du",
+  "gestaltest du",
+  "designst du",
+  "entwirfst du",
+  "erstellst du",
+  "zeichnest du",
+  "baust du",
+  "bietest du",
+  "übernimmst du",
+  "würdest du",
+  "hast du lust",
+  "ich brauche",
+  "ich bräuchte",
+  "ich suche",
+  "ich hätte gern",
+  "ich hätte gerne",
+  "ich möchte",
+  "ich will",
+  "ich benötige",
+  "wir brauchen",
+  "wir suchen",
+  "wir benötigen",
+  "can you",
+  "could you",
+  "would you",
+  "will you",
+  "are you able",
+  "do you do",
+  "do you make",
+  "do you design",
+  "do you create",
+  "do you offer",
+  "do you provide",
+  "do you build",
+  "do you draw",
+  "do you animate",
+  "do you produce",
+  "do you also",
+  "do you take on",
+  "do you handle",
+  "i need",
+  "we need",
+  "i'm looking for",
+  "i am looking for",
+  "we're looking for",
+  "i want",
+  "i'd like",
+  "i would like",
+  "we'd like",
+];
+
+/** Fragewörter: stehen sie VOR der Wendung, ist es eine Wissensfrage („Was machst du …?“) */
+export const questionWords = [
+  "was",
+  "wie",
+  "welche",
+  "welcher",
+  "welches",
+  "welchen",
+  "wo",
+  "wann",
+  "warum",
+  "wieso",
+  "weshalb",
+  "wer",
+  "what",
+  "which",
+  "how",
+  "where",
+  "when",
+  "why",
+  "who",
+];
+
+/** „Kannst du mir sagen/zeigen …“ ist keine Anfrage, sondern eine Wissensfrage */
+export const infoVerbs = [
+  "sagen",
+  "erklären",
+  "erzählen",
+  "zeigen",
+  "empfehlen",
+  "nennen",
+  "verraten",
+  "tell",
+  "explain",
+  "show",
+  "recommend",
+  "name",
+];
+
+/** Gestaltungs-Verben: „Kannst du mir eine Hundehütte designen?“ → ehrliche Antwort statt „weiß nicht“ */
+export const designVerbs = [
+  "designen",
+  "designst",
+  "gestalten",
+  "gestaltest",
+  "entwerfen",
+  "entwirfst",
+  "zeichnen",
+  "zeichnest",
+  "illustrieren",
+  "malen",
+  "malst",
+  "erstellen",
+  "erstellst",
+  "kreieren",
+  "design",
+  "draw",
+  "illustrate",
+  "sketch",
+  "paint",
+  "create",
+];
+
+/**
+ * Leistungskatalog: Dinge, nach denen Leute fragen („Kannst du ein T-Shirt designen?“).
+ * - status   yes = biete ich an · partly = teilweise (eigene Antwort sagt, was geht) ·
+ *            maybe = kommt aufs Projekt an · no = biete ich nicht an
+ * - topic    passendes Thema: liefert die Antwort (wenn `a` fehlt), Vorschläge und Gedächtnis
+ * - words    Begriffe wie Stichwörter (Synonyme greifen automatisch, `*` = Lücke).
+ *            Längere/genauere Treffer gewinnen: „Logo-Animation“ → logoAnimation, nicht logo.
+ * - label    Bezeichnung in Aufzählungen und als Projekt in der geführten Anfrage
+ * Nichts eintragen, was Achim nicht anbietet – Unklares als `maybe`.
+ */
+export type Deliverable = {
+  id: string;
+  status: "yes" | "partly" | "maybe" | "no";
+  topic?: string;
+  words: string[];
+} & Record<Locale, { label: string; a?: Text }>;
+
+export const deliverables: Deliverable[] = [
+  /* ── biete ich an ── */
+  {
+    id: "branding",
+    status: "yes",
+    topic: "branding",
+    words: ["branding", "styleguide", "brand guidelines", "markenentwicklung", "markendesign"],
+    de: { label: "Branding" },
+    en: { label: "branding" },
+  },
+  {
+    id: "logo",
+    status: "yes",
+    topic: "logo",
+    words: ["logo", "wappen", "vereinswappen", "crest"],
+    de: { label: "Logo-Design" },
+    en: { label: "logo design" },
+  },
+  {
+    id: "logo3d",
+    status: "yes",
+    topic: "logo3d",
+    words: ["3d logo", "logo * 3d", "3d * logo"],
+    de: { label: "3D-Logos" },
+    en: { label: "3D logos" },
+  },
+  {
+    id: "logoAnimation",
+    status: "yes",
+    topic: "logoAnimation",
+    words: ["logoanimation", "logo animation", "logo * animation", "animation * logo"],
+    de: { label: "Logo-Animation" },
+    en: { label: "logo animation" },
+  },
+  {
+    id: "motion",
+    status: "yes",
+    topic: "motion",
+    words: [
+      "animation",
+      "erklärvideo",
+      "explainer",
+      "intro",
+      "outro",
+      "launch video",
+      "storyboard",
+      "videoschnitt",
+      "schnitt",
+      "video editing",
+      "editing",
+    ],
+    de: { label: "Motion Design" },
+    en: { label: "motion design" },
+  },
+  {
+    id: "cover",
+    status: "yes",
+    topic: "music",
+    words: ["cover", "vinyl", "musik visuals", "music visuals"],
+    de: { label: "Cover-Artwork" },
+    en: { label: "cover art" },
+  },
+  {
+    id: "releaseVisuals",
+    status: "yes",
+    topic: "releaseVisuals",
+    words: [
+      "canvas",
+      "spotify canvas",
+      "visualizer",
+      "lyric video",
+      "lyricvideo",
+      "musikvideo",
+      "music video",
+      "rollout",
+    ],
+    de: { label: "Visualizer & Canvas" },
+    en: { label: "visualizers & canvas" },
+  },
+  {
+    id: "stage",
+    status: "yes",
+    topic: "stage",
+    words: [
+      "bühnenvisuals",
+      "bühne",
+      "stage",
+      "konzertvisuals",
+      "live visuals",
+      "tour visuals",
+      "visuals * konzert",
+      "visuals * konzerte",
+      "visuals * concert",
+      "visuals * concerts",
+      "visuals * show",
+      "visuals * shows",
+      "led wand",
+      "led wall",
+      "led screen",
+    ],
+    de: { label: "Bühnenvisuals" },
+    en: { label: "stage visuals" },
+  },
+  {
+    id: "three_d",
+    status: "yes",
+    topic: "three_d",
+    words: [
+      "3d",
+      "3d animation",
+      "produktvisualisierung",
+      "visualisierung",
+      "product visualization",
+      "product render",
+    ],
+    de: { label: "3D" },
+    en: { label: "3D" },
+  },
+  {
+    id: "poster",
+    status: "yes",
+    topic: "graphic",
+    words: ["plakat", "flyer", "handzettel", "gig poster", "postkarte", "postcard"],
+    de: {
+      label: "Poster & Flyer",
+      a: "Ja – Poster und Flyer gestalte ich gern, druckfertig für die Druckerei deiner Wahl.",
+    },
+    en: {
+      label: "posters & flyers",
+      a: "Yes – I'm happy to design posters and flyers, print-ready for the print shop of your choice.",
+    },
+  },
+  {
+    id: "stationery",
+    status: "yes",
+    topic: "graphic",
+    words: [
+      "visitenkarte",
+      "business card",
+      "briefpapier",
+      "briefkopf",
+      "briefbogen",
+      "geschäftsausstattung",
+      "letterhead",
+      "stationery",
+      "email signatur",
+      "email signature",
+    ],
+    de: {
+      label: "Visitenkarten & Geschäftsausstattung",
+      a: "Ja – Visitenkarten, Briefpapier und Co. gestalte ich gern, am besten passend zu deinem Logo und Markenauftritt.",
+    },
+    en: {
+      label: "business cards & stationery",
+      a: "Yes – business cards, letterheads and the like, ideally matching your logo and brand.",
+    },
+  },
+  {
+    id: "merch",
+    status: "yes",
+    topic: "graphic",
+    words: [
+      "merch",
+      "merchandise",
+      "t shirt",
+      "tshirt",
+      "shirt",
+      "hoodie",
+      "pullover",
+      "sticker",
+      "aufkleber",
+      "jutebeutel",
+      "tote bag",
+      "tasse",
+      "mug",
+      "mugs",
+      "cap",
+      "caps",
+    ],
+    de: {
+      label: "Merch",
+      a: "Ja – Merch wie T-Shirts, Hoodies oder Sticker gestalte ich gern, mit druckfertigen Dateien für deinen Hersteller.",
+    },
+    en: {
+      label: "merch",
+      a: "Yes – I'm happy to design merch like T-shirts, hoodies or stickers, with print-ready files for your manufacturer.",
+    },
+  },
+  {
+    id: "packaging",
+    status: "yes",
+    topic: "graphic",
+    words: ["verpackung", "packaging", "package design", "etikett", "etiketten"],
+    de: {
+      label: "Verpackung & Etiketten",
+      a: "Ja – Verpackungen und Etiketten gestalte ich gern, inklusive druckfertiger Daten.",
+    },
+    en: {
+      label: "packaging & labels",
+      a: "Yes – I'm happy to design packaging and labels, including print-ready files.",
+    },
+  },
+  {
+    id: "tickets",
+    status: "yes",
+    topic: "graphic",
+    words: [
+      "ticket",
+      "eintrittskarte",
+      "einladung",
+      "einladungskarte",
+      "invitation",
+      "gutschein",
+      "voucher",
+    ],
+    de: {
+      label: "Tickets & Einladungen",
+      a: "Ja – Tickets, Einladungen oder Gutscheine gestalte ich gern.",
+    },
+    en: {
+      label: "tickets & invitations",
+      a: "Yes – I'm happy to design tickets, invitations or vouchers.",
+    },
+  },
+  {
+    id: "printMatter",
+    status: "yes",
+    topic: "graphic",
+    words: [
+      "broschüre",
+      "brochure",
+      "katalog",
+      "catalog",
+      "catalogue",
+      "booklet",
+      "speisekarte",
+      "getränkekarte",
+      "restaurant menu",
+      "food menu",
+      "drucksachen",
+      "printdesign",
+      "rollup",
+      "roll up",
+      "banner",
+    ],
+    de: {
+      label: "Broschüren & Drucksachen",
+      a: "Ja – Broschüren, Kataloge, Speisekarten, Banner und andere Drucksachen gestalte ich gern, druckfertig aufbereitet.",
+    },
+    en: {
+      label: "brochures & print",
+      a: "Yes – brochures, catalogues, menus, banners and other print matter, prepared print-ready.",
+    },
+  },
+  {
+    id: "ads",
+    status: "yes",
+    topic: "graphic",
+    words: ["anzeige", "werbeanzeige", "ads", "ad creatives", "kampagne", "campaign"],
+    de: {
+      label: "Anzeigen & Kampagnen-Motive",
+      a: "Ja – Anzeigen und Kampagnen-Motive gestalte ich gern, für Print, Web und Social Media.",
+    },
+    en: {
+      label: "ads & campaign visuals",
+      a: "Yes – I'm happy to design ads and campaign visuals, for print, web and social media.",
+    },
+  },
+  {
+    id: "social",
+    status: "yes",
+    topic: "socialContent",
+    words: [
+      "socialmedia",
+      "content",
+      "post",
+      "reel",
+      "carousel",
+      "karussell",
+      "story",
+      "stories",
+      "story template",
+      "instagram post",
+      "tiktok",
+      "highlight cover",
+    ],
+    de: { label: "Social-Media-Content" },
+    en: { label: "social media content" },
+  },
+  {
+    id: "youtube",
+    status: "yes",
+    topic: "socialContent",
+    words: [
+      "thumbnail",
+      "thumbnails",
+      "youtube banner",
+      "kanalbanner",
+      "channel banner",
+      "channel art",
+      "twitter header",
+      "profilbanner",
+    ],
+    de: {
+      label: "Thumbnails & Kanal-Grafiken",
+      a: "Ja – YouTube-Thumbnails, Banner und Kanal-Grafiken gestalte ich gern, passend zu deinem Look.",
+    },
+    en: {
+      label: "thumbnails & channel art",
+      a: "Yes – YouTube thumbnails, banners and channel art, designed to match your look.",
+    },
+  },
+  {
+    id: "website",
+    status: "yes",
+    topic: "website",
+    words: ["website", "cms"],
+    de: { label: "Website" },
+    en: { label: "website" },
+  },
+  {
+    id: "uiux",
+    status: "yes",
+    topic: "uiux",
+    words: [
+      "app",
+      "ui",
+      "ux",
+      "ui ux",
+      "interface",
+      "user interface",
+      "appdesign",
+      "app design",
+      "screendesign",
+      "prototyp",
+      "prototype",
+    ],
+    de: {
+      label: "UI/UX-Design",
+      a: "Ja – das UI/UX-Design für Apps, also Oberfläche und Nutzerführung, übernehme ich gern. Programmiert wird die App dann von einem Entwicklungsteam – das mache ich nicht selbst.",
+    },
+    en: {
+      label: "UI/UX design",
+      a: "Yes – I'm happy to take on the UI/UX design for apps, i.e. the interface and user flow. The app itself is then coded by a development team – that's not something I do myself.",
+    },
+  },
+  {
+    id: "sound",
+    status: "yes",
+    topic: "sound",
+    words: ["sounddesign", "sound design", "soundeffekte", "sound effects", "sfx", "vertonung"],
+    de: { label: "Sounddesign" },
+    en: { label: "sound design" },
+  },
+  {
+    id: "typeface",
+    status: "yes",
+    topic: "fonts",
+    words: ["schrift", "type design", "custom font"],
+    de: { label: "Schriftgestaltung" },
+    en: { label: "type design" },
+  },
+
+  /* ── teilweise: Antwort sagt, was geht ── */
+  {
+    id: "appCode",
+    status: "partly",
+    topic: "uiux",
+    words: [
+      "app * programmieren",
+      "app * entwickeln",
+      "app * coden",
+      "build * app",
+      "develop * app",
+      "code * app",
+    ],
+    de: {
+      label: "App-Design",
+      a: "Apps programmiere ich nicht selbst – das UI/UX-Design dafür, also Oberfläche und Nutzerführung, übernehme ich aber gern.",
+    },
+    en: {
+      label: "app design",
+      a: "I don't code apps myself – but I'm happy to take on the UI/UX design for them, i.e. the interface and user flow.",
+    },
+  },
+  {
+    id: "liveVj",
+    status: "partly",
+    topic: "stage",
+    words: ["vj", "vjing", "live * bedienen", "live * auflegen", "run * live", "operate * live"],
+    de: {
+      label: "Bühnenvisuals",
+      a: "Live bediene ich Visuals nicht selbst – ich liefere sie dir aber fertig aufbereitet für die Software vor Ort, z. B. Resolume.",
+    },
+    en: {
+      label: "stage visuals",
+      a: "I don't run visuals live myself – but I deliver them fully prepared for the software on site, e.g. Resolume.",
+    },
+  },
+
+  /* ── kommt aufs Projekt an ── */
+  {
+    id: "illustration",
+    status: "maybe",
+    words: [
+      "illustration",
+      "illustrationen",
+      "zeichnung",
+      "gemälde",
+      "painting",
+      "comic",
+      "manga",
+      "kinderbuch",
+    ],
+    de: { label: "Illustrationen" },
+    en: { label: "illustrations" },
+  },
+  {
+    id: "tattoo",
+    status: "maybe",
+    words: ["tattoo", "tattoos", "tätowierung", "tattoo design"],
+    de: { label: "Tattoo-Designs" },
+    en: { label: "tattoo designs" },
+  },
+  {
+    id: "bookCover",
+    status: "maybe",
+    words: ["buchcover", "book cover", "ebook cover", "e book cover", "buchumschlag"],
+    de: { label: "Buchcover" },
+    en: { label: "book covers" },
+  },
+  {
+    id: "character",
+    status: "maybe",
+    words: [
+      "maskottchen",
+      "mascot",
+      "charakter",
+      "character",
+      "character design",
+      "avatar",
+      "emote",
+      "emotes",
+    ],
+    de: { label: "Maskottchen & Charaktere" },
+    en: { label: "mascots & characters" },
+  },
+  {
+    id: "presentation",
+    status: "maybe",
+    words: ["präsentation", "presentation", "pitch deck", "pitchdeck", "powerpoint", "slides"],
+    de: { label: "Präsentationen" },
+    en: { label: "presentations" },
+  },
+  {
+    id: "icons",
+    status: "maybe",
+    words: ["icon", "icons", "iconset", "icon set", "piktogramm", "pictogram"],
+    de: { label: "Icons" },
+    en: { label: "icons" },
+  },
+  {
+    id: "signage",
+    status: "maybe",
+    words: [
+      "schild",
+      "schilder",
+      "beschilderung",
+      "signage",
+      "fahrzeugbeschriftung",
+      "autobeschriftung",
+      "car wrap",
+      "vehicle wrap",
+      "folierung",
+      "schaufenster",
+    ],
+    de: { label: "Beschilderung & Fahrzeugbeschriftung" },
+    en: { label: "signage & vehicle graphics" },
+  },
+  {
+    id: "stream",
+    status: "maybe",
+    words: ["overlay", "overlays", "stream overlay", "twitch", "streamdesign", "stream design"],
+    de: { label: "Stream-Overlays" },
+    en: { label: "stream overlays" },
+  },
+  {
+    id: "game",
+    status: "maybe",
+    words: ["game assets", "spielgrafik", "spielgrafiken", "game art", "pixel art", "pixelart"],
+    de: { label: "Game-Grafiken" },
+    en: { label: "game art" },
+  },
+  {
+    id: "fashion",
+    status: "maybe",
+    words: ["modedesign", "fashion design", "kollektion"],
+    de: { label: "Modedesign" },
+    en: { label: "fashion design" },
+  },
+
+  /* ── biete ich nicht an ── */
+  {
+    id: "shop",
+    status: "no",
+    topic: "website",
+    words: [
+      "shop",
+      "onlineshop",
+      "webshop",
+      "online shop",
+      "online store",
+      "e commerce",
+      "ecommerce",
+      "shopify",
+    ],
+    de: {
+      label: "Onlineshops",
+      a: "Onlineshops und Seiten mit Kundenkonten oder Zahlungsdaten übernehme ich nicht. Eine Portfolio-, Künstler- oder Unternehmensseite baue ich dir dagegen gern.",
+    },
+    en: {
+      label: "online shops",
+      a: "I don't take on online shops or sites with customer accounts and payment data. A portfolio, artist or company site, on the other hand, I'm happy to build.",
+    },
+  },
+  {
+    id: "photo",
+    status: "no",
+    topic: "photo",
+    words: [
+      "foto",
+      "fotos",
+      "fotografie",
+      "fotograf",
+      "fotografieren",
+      "fotoshooting",
+      "shooting",
+      "photo",
+      "photography",
+      "photographer",
+      "photoshoot",
+      "headshot",
+      "headshots",
+    ],
+    de: { label: "Fotografie" },
+    en: { label: "photography" },
+  },
+  {
+    id: "printing",
+    status: "no",
+    topic: "print",
+    words: ["druck"],
+    de: {
+      label: "Druck",
+      a: "Drucken lasse ich selbst nichts – du bekommst von mir aber druckfertige Dateien für die Druckerei deiner Wahl.",
+    },
+    en: {
+      label: "printing",
+      a: "I don't arrange the printing myself – but you get print-ready files from me for the print shop of your choice.",
+    },
+  },
+  {
+    id: "musicProduction",
+    status: "no",
+    topic: "sound",
+    words: ["musikproduktion", "music production", "beat", "beats", "instrumental", "abmischen"],
+    de: {
+      label: "Musikproduktion",
+      a: "Musik produziere ich nur als Hobby – das biete ich nicht an. Visuals für deine Musik dagegen sehr gern: Cover, Canvas, Visualizer und mehr.",
+    },
+    en: {
+      label: "music production",
+      a: "I only produce music as a hobby – that's not something I offer. Visuals for your music, on the other hand, I'm happy to do: covers, canvas, visualizers and more.",
+    },
+  },
+];
+
 const email = "[{email}](mailto:{email})";
 
 export const topics: Topic[] = [
@@ -1872,15 +2679,20 @@ export const topics: Topic[] = [
       ],
     },
     followUps: ["minimum", "payment", "revisions"],
+    offer: {
+      yes: "inquiry",
+      de: "Für ein konkretes Angebot brauche ich nur ein paar Infos – soll ich dir helfen, sie zusammenzustellen?",
+      en: "For a concrete quote I just need a few details – shall I help you put them together?",
+    },
     de: {
       label: "Preise",
       q: "Was kostet das?",
-      a: `Feste Preise oder Richtwerte gibt es bei mir nicht – der Preis richtet sich nach dem Umfang und wird vorab fest vereinbart, inklusive der nötigen Korrekturschleifen. Projekte mit Neukunden starten ab 300 €. Beschreib mir kurz, was du brauchst: ${email}.`,
+      a: "Feste Preise oder Richtwerte gibt es bei mir nicht – der Preis richtet sich nach dem Umfang und wird vorab fest vereinbart, inklusive der nötigen Korrekturschleifen. Projekte mit Neukunden starten ab 300 €.",
     },
     en: {
       label: "pricing",
       q: "What does it cost?",
-      a: `I don't have fixed prices or ballpark rates – the price depends on the scope and is agreed up front, including the necessary rounds of revisions. Projects with new clients start at €300. Just tell me briefly what you need: ${email}.`,
+      a: "I don't have fixed prices or ballpark rates – the price depends on the scope and is agreed up front, including the necessary rounds of revisions. Projects with new clients start at €300.",
     },
   },
   {
@@ -2802,6 +3614,11 @@ export const topics: Topic[] = [
       ],
     },
     followUps: ["branding", "motion", "music"],
+    offer: {
+      yes: "inquiry",
+      de: "Hast du schon ein konkretes Projekt im Kopf?",
+      en: "Do you already have a specific project in mind?",
+    },
     de: {
       label: "Leistungen",
       q: "Was bietest du an?",
@@ -2879,6 +3696,11 @@ export const topics: Topic[] = [
       en: ["Which clients have you worked with?", "Do you work with clients abroad?"],
     },
     followUps: ["work", "languages", "contact"],
+    offer: {
+      yes: "work",
+      de: "Möchtest du ein paar Projekte sehen?",
+      en: "Would you like to see some projects?",
+    },
     de: {
       label: "Kunden",
       q: "Für wen hast du schon gearbeitet?",
@@ -2932,30 +3754,173 @@ export const topics: Topic[] = [
       "warum sollte ich",
       "was macht dich aus",
       "was unterscheidet",
+      "was spricht für dich",
+      "überzeug mich",
       "stärken",
       "why you",
       "why should i",
       "why hire",
       "what makes you different",
+      "what makes you stand out",
+      "convince me",
       "strengths",
       "why should i hire you",
       "warum sollte ich dich buchen",
       "why hire you",
     ],
     examples: {
-      de: ["Warum sollte ich mit dir arbeiten?", "Was macht dich als Designer aus?"],
-      en: ["Why should I hire you?", "What makes you different?"],
+      de: [
+        "Warum sollte ich mit dir arbeiten?",
+        "Was macht dich als Designer aus?",
+        "Überzeug mich!",
+      ],
+      en: ["Why should I hire you?", "What makes you different?", "Convince me"],
     },
-    followUps: ["work", "process", "contact"],
+    followUps: ["work", "clients", "process"],
+    offer: {
+      yes: "inquiry",
+      de: "Wollen wir über dein Projekt sprechen?",
+      en: "Shall we talk about your project?",
+    },
     de: {
       label: "Warum ich?",
       q: "Warum sollte ich mit dir arbeiten?",
-      a: "Mir sind ein gutes, faires Ergebnis und Sorgfalt wichtig – Qualität vor Quantität. Dafür setze ich auf gute Kommunikation und bringe meine Erfahrung ein, auch mal mit einem Vorschlag, der für Projekt und Zielgruppe besser funktioniert als der erste persönliche Geschmack. Dazu kommen ein gutes technisches Verständnis und Skills in vielen Programmen und Themen.",
+      a: "Drei Gründe: Du arbeitest direkt mit mir – ohne Agentur dazwischen, mit kurzen Wegen und ehrlicher Beratung. Ich gestalte seit 2013 und habe schon mit über 50 Kunden aus Europa, Amerika und Asien gearbeitet. Und mir sind Sorgfalt und ein faires Ergebnis wichtig – Qualität vor Quantität, auch mal mit einem Vorschlag, der für deine Zielgruppe besser funktioniert als der erste Geschmack.",
     },
     en: {
       label: "why me?",
       q: "Why should I work with you?",
-      a: "I care about a good, fair result and real attention to detail – quality over quantity. That takes good communication, and I bring my experience to the table – sometimes with a suggestion that works better for the project and audience than a first personal preference. On top of that: solid technical understanding and skills across many tools and topics.",
+      a: "Three reasons: you work directly with me – no agency in between, short lines and honest advice. I've been designing since 2013 and have worked with over 50 clients from Europe, America and Asia. And I care about attention to detail and a fair result – quality over quantity, sometimes with a suggestion that works better for your audience than a first personal preference.",
+    },
+  },
+  {
+    id: "fit",
+    kind: "general",
+    keywords: [
+      "der richtige",
+      "die richtige",
+      "richtige person",
+      "richtige designer",
+      "richtigen designer",
+      "der passende",
+      "passt du",
+      "passen wir",
+      "bist du gut",
+      "kannst du das überhaupt",
+      "right person",
+      "right designer",
+      "right fit",
+      "good fit",
+      "are you good",
+      "are you any good",
+      "the one for",
+      "can you handle",
+    ],
+    examples: {
+      de: ["Bist du der Richtige für mein Projekt?", "Passt du zu meinem Projekt?"],
+      en: ["Are you the right person for my project?", "Are you a good fit for my brand?"],
+    },
+    followUps: ["work", "whyMe", "clients"],
+    offer: {
+      yes: "inquiry",
+      de: "Erzählst du mir kurz von deinem Projekt?",
+      en: "Want to tell me a bit about your project?",
+    },
+    de: {
+      label: "Passt das?",
+      q: "Bist du der Richtige für mein Projekt?",
+      a: "Finden wir's raus! Wenn es um Branding, Logos, Motion Design, Musik-Visuals oder Social-Media-Content geht, stehen die Chancen sehr gut – das mache ich seit 2013, für über 50 Kunden international. Und wenn etwas nicht zu mir passt, sage ich dir das ehrlich.",
+    },
+    en: {
+      label: "a good fit?",
+      q: "Are you the right person for my project?",
+      a: "Let's find out! If it's about branding, logos, motion design, music visuals or social media content, chances are very good – I've been doing this since 2013, for over 50 clients worldwide. And if something isn't a fit for me, I'll tell you honestly.",
+    },
+  },
+  {
+    id: "lowBudget",
+    kind: "general",
+    keywords: [
+      "zu teuer",
+      "kleines budget",
+      "kleinen budget",
+      "wenig budget",
+      "knappes budget",
+      "begrenztes budget",
+      "kein budget",
+      "geht * günstiger",
+      "gehts * günstiger",
+      "verhandeln",
+      "verhandelbar",
+      "too expensive",
+      "small budget",
+      "low budget",
+      "tight budget",
+      "limited budget",
+      "no budget",
+      "on a budget",
+      "negotiable",
+      "negotiate",
+    ],
+    examples: {
+      de: ["Das ist mir zu teuer", "Ich habe nur ein kleines Budget"],
+      en: ["That's too expensive for me", "I only have a small budget"],
+    },
+    followUps: ["minimum", "scope", "process"],
+    offer: {
+      yes: "inquiry",
+      de: "Magst du mir kurz sagen, was du vorhast?",
+      en: "Want to tell me briefly what you have in mind?",
+    },
+    de: {
+      label: "kleines Budget",
+      q: "Ich habe nur ein kleines Budget",
+      a: "Verstehe ich – Budget ist immer ein Thema. Der Preis richtet sich nach dem Umfang, Projekte mit Neukunden starten bei mir ab 300 €. Sag mir, was du ausgeben möchtest – dann sage ich dir ehrlich, was damit sinnvoll möglich ist.",
+    },
+    en: {
+      label: "small budget",
+      q: "I only have a small budget",
+      a: "I get it – budget always matters. The price depends on the scope, and projects with new clients start at €300. Tell me what you'd like to spend and I'll tell you honestly what makes sense within it.",
+    },
+  },
+  {
+    id: "vsAgency",
+    kind: "general",
+    keywords: [
+      "statt * agentur",
+      "anstatt * agentur",
+      "gegenüber * agentur",
+      "vorteil * agentur",
+      "vorteile * agentur",
+      "freelancer oder * agentur",
+      "instead of * agency",
+      "rather than * agency",
+      "advantage * agency",
+      "advantages * agency",
+      "freelancer or * agency",
+      "vs * agency",
+      "versus * agency",
+    ],
+    examples: {
+      de: [
+        "Was ist der Vorteil gegenüber einer Agentur?",
+        "Freelancer oder Agentur – was ist besser?",
+      ],
+      en: [
+        "Why work with a freelancer instead of an agency?",
+        "What's the advantage over an agency?",
+      ],
+    },
+    followUps: ["whyMe", "process", "contact"],
+    de: {
+      label: "Freelancer statt Agentur",
+      q: "Was ist der Vorteil gegenüber einer Agentur?",
+      a: "Bei mir sprichst du direkt mit der Person, die die Arbeit auch macht – ohne Weitergabe und ohne Umwege. Feedback kommt direkt an, Abstimmungen gehen schneller, und du weißt immer, wer an deinem Projekt sitzt.",
+    },
+    en: {
+      label: "freelancer vs. agency",
+      q: "What's the advantage over an agency?",
+      a: "With me, you talk directly to the person who actually does the work – no handovers, no detours. Feedback lands directly, decisions move faster, and you always know who's working on your project.",
     },
   },
   {
@@ -3036,32 +4001,200 @@ export const topics: Topic[] = [
     id: "bot",
     kind: "general",
     keywords: [
-      "bot",
-      "chatbot",
-      "roboter",
-      "robot",
       "bist du eine ki",
-      "bist du ein mensch",
-      "echter mensch",
-      "are you an ki",
-      "are you human",
-      "real person",
-      "bist du echt",
+      "bist du ki",
+      "bist du ne ki",
+      "bist du chatgpt",
+      "ist das * ki",
+      "are you an ai",
+      "are you ai",
+      "are you a ai",
+      "are you chatgpt",
+      "is this * ai",
     ],
     examples: {
-      de: ["Bist du eine KI?", "Bist du ein Bot?"],
-      en: ["Are you an AI?", "Am I talking to a real person?"],
+      de: ["Bist du eine KI?", "Ist das hier eine KI?"],
+      en: ["Are you an AI?", "Is this an AI?"],
     },
-    followUps: ["contact", "about", "services"],
+    followUps: ["about", "services", "contact"],
+    // Gegenfrage „Bist du eine?“ → „Ja“ = Besucher ist eine KI, „Nein“ = Mensch
+    offer: {
+      yes: "visitorAi",
+      no: "visitorHuman",
+      replies: {
+        de: ["Ja, erwischt", "Nein, bin ein Mensch"],
+        en: ["Yes, busted", "No, I'm human"],
+      },
+    },
     de: {
       label: "dieser Chat",
       q: "Bist du eine KI?",
-      a: `Ehrlich gesagt: Hier antwortet ein kleines Programm in meinem Namen – keine KI, sondern vorbereitete Antworten auf Basis meiner Website. Persönlich erreichst du mich unter ${email}.`,
+      a: [
+        "Gegenfrage: Bist du eine? Spaß beiseite – hier antwortet ein kleines Programm in meinem Namen. Keine KI, sondern Antworten, die ich selbst geschrieben habe. Die Designs mache ich sowieso persönlich.",
+        "Das wollte ich dich auch gerade fragen – bist du eine? Spaß beiseite: Hier antwortet ein kleines Programm in meinem Namen, mit Antworten, die ich selbst geschrieben habe. Keine KI, versprochen.",
+      ],
     },
     en: {
       label: "this chat",
       q: "Are you an AI?",
-      a: `To be honest: a small program answers here on my behalf – not an AI, but prepared answers based on my website. You can reach me personally at ${email}.`,
+      a: [
+        "Counter-question: are you? Joking aside – a small program answers here on my behalf. Not an AI, but answers I wrote myself. The design work is all me anyway.",
+        "Funny, I was about to ask you the same – are you? Joking aside: a small program answers here on my behalf, with answers I wrote myself. No AI, promise.",
+      ],
+    },
+  },
+  {
+    id: "robot",
+    kind: "general",
+    keywords: [
+      "bot",
+      "chatbot",
+      "roboter",
+      "robot",
+      "bist du ein programm",
+      "are you a program",
+      "are you a bot",
+    ],
+    examples: {
+      de: ["Bist du ein Bot?", "Bist du ein Roboter?"],
+      en: ["Are you a bot?", "Is this a chatbot?"],
+    },
+    followUps: ["about", "services", "contact"],
+    offer: {
+      yes: "visitorAi",
+      no: "visitorHuman",
+      replies: {
+        de: ["Ja, erwischt", "Nein, bin ein Mensch"],
+        en: ["Yes, busted", "No, I'm human"],
+      },
+    },
+    de: {
+      label: "dieser Chat",
+      q: "Bist du ein Bot?",
+      a: [
+        "Gegenfrage: Bist du einer? Spaß beiseite – hier antwortet ein kleines Programm in meinem Namen, mit Antworten, die ich selbst geschrieben habe. Keine KI – und die Designs mache ich sowieso persönlich.",
+        "Psst, nicht so laut. Und du – bist du einer? Spaß beiseite: Hier antwortet ein kleines Programm in meinem Namen, mit Antworten, die ich selbst geschrieben habe.",
+      ],
+    },
+    en: {
+      label: "this chat",
+      q: "Are you a bot?",
+      a: [
+        "Counter-question: are you? Joking aside – a small program answers here on my behalf, with answers I wrote myself. No AI – and the design work is all me anyway.",
+        "Shh, not so loud. And you – are you one? Joking aside: a small program answers here on my behalf, with answers I wrote myself.",
+      ],
+    },
+  },
+  {
+    id: "human",
+    kind: "general",
+    keywords: [
+      "bist du ein mensch",
+      "echter mensch",
+      "bist du echt",
+      "bist du wirklich achim",
+      "bist du achim selbst",
+      "mit dem echten achim",
+      "schreibe ich mit achim",
+      "rede ich mit achim",
+      "are you human",
+      "are you a human",
+      "are you real",
+      "real person",
+      "real human",
+      "is this really achim",
+      "talking to achim",
+      "the real achim",
+    ],
+    examples: {
+      de: ["Bist du ein Mensch?", "Schreibe ich gerade mit dem echten Achim?"],
+      en: ["Are you human?", "Am I talking to a real person?"],
+    },
+    followUps: ["about", "contact", "services"],
+    // Gegenfrage „Bist du einer?“ → „Ja“ = Besucher ist ein Mensch
+    offer: {
+      yes: "visitorHuman",
+      no: "visitorAi",
+      replies: { de: ["Ja, klar", "Nein, erwischt"], en: ["Yes, of course", "No, busted"] },
+    },
+    de: {
+      label: "dieser Chat",
+      q: "Bist du ein Mensch?",
+      a: [
+        `Gegenfrage: Bist du denn einer? Spaß beiseite – hier antwortet ein kleines Programm in meinem Namen, mit Antworten, die ich selbst geschrieben habe. Den echten Achim erreichst du unter ${email}.`,
+        `Das sagen sie alle. Und du – bist du einer? Ehrlich gesagt antwortet hier ein kleines Programm in meinem Namen. Den echten Achim erreichst du unter ${email}.`,
+      ],
+    },
+    en: {
+      label: "this chat",
+      q: "Are you human?",
+      a: [
+        `Counter-question: are you? Joking aside – a small program answers here on my behalf, with answers I wrote myself. You can reach the real Achim at ${email}.`,
+        `That's what they all say. And you – are you? To be honest, a small program answers here on my behalf. You can reach the real Achim at ${email}.`,
+      ],
+    },
+  },
+  {
+    id: "visitorAi",
+    kind: "general",
+    keywords: [
+      "ich bin eine ki",
+      "ich bin ein bot",
+      "ich bin ein roboter",
+      "i am an ai",
+      "i m an ai",
+      "i am a bot",
+      "i m a bot",
+      "i am a robot",
+    ],
+    examples: {
+      de: ["Ich bin eine KI", "Ich bin ein Bot"],
+      en: ["I'm an AI", "I am a bot"],
+    },
+    followUps: ["services", "work", "contact"],
+    de: {
+      a: [
+        "Na dann: Willkommen, Kollege! Richte deinem Menschen gern aus, dass er hier einen Designer für Branding, Motion Design und Musik-Visuals findet.",
+        "Dann sind wir hier ja unter uns. Sag deinem Menschen Bescheid: Für Logos, Animationen und Musik-Visuals ist er bei mir richtig.",
+      ],
+    },
+    en: {
+      a: [
+        "Well then: welcome, colleague! Feel free to tell your human they've found a designer for branding, motion design and music visuals.",
+        "Then it's just us machines here. Let your human know: for logos, animation and music visuals, they've come to the right place.",
+      ],
+    },
+  },
+  {
+    id: "visitorHuman",
+    kind: "general",
+    keywords: [
+      "ich bin ein mensch",
+      "ich bin echt",
+      "ich bin kein bot",
+      "ich bin keine ki",
+      "i am human",
+      "i m human",
+      "i am a human",
+      "i m a human",
+      "i m not a bot",
+    ],
+    examples: {
+      de: ["Ich bin ein Mensch", "Nein, ich bin kein Bot"],
+      en: ["I'm human", "I'm not a bot"],
+    },
+    followUps: ["services", "work", "contact"],
+    de: {
+      a: [
+        "Puh, Glück gehabt – mit Menschen arbeite ich am liebsten. Was kann ich für dich tun?",
+        "Sehr gut, dann sind wir uns einig: Gestaltet wird hier von Mensch für Mensch. Womit kann ich dir helfen?",
+      ],
+    },
+    en: {
+      a: [
+        "Phew, lucky me – humans are my favourite people to work with. What can I do for you?",
+        "Great, then we agree: design here is made by humans, for humans. How can I help?",
+      ],
     },
   },
   {

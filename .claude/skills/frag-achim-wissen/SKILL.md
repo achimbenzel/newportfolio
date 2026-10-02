@@ -52,6 +52,12 @@ ohne Code-Änderung mitwachsen. Texte, die auf der Website stehen, nicht zusätz
 - Ja/Nein-Frage am Ende der Antwort? → `offer: { yes: "<thema>", de, en }` (bei „Ja“ folgt das Thema).
 - Bilder zeigen? → Fotos nach `assets/photos/<album>/originals/`, `npm run photos`, Alt-Texte DE/EN in
   `features/ask/galleries.ts`, am Thema `gallery: "<id>"` (Anleitung: `docs/10-anleitungen.md`).
+- Fragen wie „Kannst du XY designen?“ → Ding in den Leistungskatalog `deliverables` eintragen
+  (`yes` = bietet Achim an, `partly` = teilweise mit eigener Antwort, `maybe` = kommt aufs Projekt
+  an, `no` = nicht), mit Thema, Begriffen DE + EN und Bezeichnung. Unklares immer als `maybe`.
+- Verkauf: Antworten dürfen zeigen, warum Achim der Richtige ist – aber nur mit echten Fakten
+  (über 50 Kunden, seit 2013, direkter Kontakt, kostenloses Erstgespräch …). Passt eine Anfrage
+  danach, `offer: { yes: "inquiry", de, en }` setzen.
 - Neue Fakten zu Konditionen (Budget-Grenzen …)? → auch `profile` und die geführte Anfrage
   (`askTexts[lang].inquiry`) prüfen, damit beide dasselbe sagen.
 - **Nichts erfinden:** keine Preise, Termine, Kunden oder Leistungen, die Achim nicht genannt hat.

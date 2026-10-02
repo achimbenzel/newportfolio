@@ -47,8 +47,11 @@ function stepReply(step: number, answers: string[], lang: Locale, prefix = ""): 
   };
 }
 
-export function startInquiry(lang: Locale): InquiryReply {
-  return stepReply(0, [], lang);
+/** Anfrage starten – mit schon bekanntem Projekt („Logo-Design“) direkt bei der zweiten Frage */
+export function startInquiry(lang: Locale, type?: string): InquiryReply {
+  const known = type && clean(type);
+  if (!known) return stepReply(0, [], lang);
+  return stepReply(1, [known], lang, fill(askTexts[lang].inquiry.prefilled, { type: known }));
 }
 
 /** Aktuelle Frage noch einmal stellen (z. B. nach einer Zwischenfrage) */

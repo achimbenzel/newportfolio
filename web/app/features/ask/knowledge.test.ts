@@ -20,13 +20,16 @@ import {
   type AskContext,
   type AskOptions,
 } from "./engine";
+import { askedObject, findDeliverables, hasRequestIntent } from "./capability";
 import { galleryAltTexts, getGallery } from "./galleries";
 import { dayPeriod, greetingFor } from "./greeting";
 import { maskPersonalData } from "./log";
 import { photoFiles } from "./photos.generated";
+import { prepare } from "./text";
 import {
   askTexts,
   defaultChips,
+  deliverables,
   greetingPrompts,
   synonyms,
   timeGreetings,
@@ -842,3 +845,194 @@ describe("Frag Achim – Protokoll unbeantworteter Fragen", () => {
     ).toBe("Ich bin [email], Tel. [nummer], siehe [link]");
   });
 });
+
+/* ── KI-Gegenfrage ──────────────────────────────────────────────────── */
+
+describe("Frag Achim – „Bist du eine KI?“", () => {
+  it("kontert mit einer Gegenfrage und bleibt trotzdem ehrlich", () => {
+    for (const random of [() => 0, () => 0.99]) {
+      const de = answerLocally("Bist du eine KI?", { lang: "de", random });
+      expect(de.text).toContain("bist du eine?".slice(1));
+      expect(de.text).toContain("Programm in meinem Namen");
+      const en = answerLocally("Are you an AI?", { lang: "en", random });
+      expect(en.text).toContain("are you?");
+      expect(en.text).toContain("small program");
+    }
+    expect(answerLocally("Bist du ein Bot?", { lang: "de", random: () => 0 }).text).toContain(
+      "Bist du einer?",
+    );
+    expect(answerLocally("Bist du ein Mensch?", { lang: "de", random: () => 0 }).text).toContain(
+      "Bist du denn einer?",
+    );
+  });
+
+  it("„Ja“ / „Nein“ auf die Gegenfrage bekommen eine eigene Antwort", () => {
+    const ai = conversation("de");
+    expect(ai("Bist du eine KI?").replies).toEqual(["Ja, erwischt", "Nein, bin ein Mensch"]);
+    expect(ai("Nein, bin ein Mensch").topicId).toBe("visitorHuman");
+    const busted = conversation("de");
+    busted("Bist du eine KI?");
+    expect(busted("Ja, erwischt").topicId).toBe("visitorAi");
+    // bei „Bist du ein Mensch?“ ist es andersherum
+    const human = conversation("en");
+    human("Are you human?");
+    expect(human("No, busted").topicId).toBe("visitorAi");
+  });
+});
+
+/* ── Verkauf: „Kannst du XY designen?“ ──────────────────────────────── */
+
+describe("Frag Achim – „Kannst du XY designen?“", () => {
+  const ask = (question: string, lang: Locale = "de") =>
+    answerLocally(question, { lang, random: () => 0 });
+
+  it("erkennt Anfragen – aber nicht Wissensfragen", () => {
+    for (const q of [
+      "Kannst du ein T-Shirt designen?",
+      "Hallo, ich brauche ein Logo",
+      "Can you make YouTube thumbnails?",
+      "Do you design posters?",
+    ])
+      expect(hasRequestIntent(q), q).toBe(true);
+    for (const q of [
+      "Was kannst du alles?",
+      "Kannst du mir sagen, wie lange ein Logo dauert?",
+      "Can you show me your work?",
+      "Do you like tea?",
+    ])
+      expect(hasRequestIntent(q), q).toBe(false);
+  });
+
+  it("jeder Eintrag im Katalog ist vollständig und wird über seine Begriffe gefunden", () => {
+    const ids = new Set(topics.map((t) => t.id));
+    for (const item of deliverables) {
+      if (item.topic) expect(ids.has(item.topic), `${item.id} → ${item.topic}`).toBe(true);
+      if (item.status !== "maybe") expect(item.topic, item.id).toBeTruthy();
+      for (const lang of ["de", "en"] as const) expect(item[lang].label, item.id).toBeTruthy();
+      for (const word of item.words.filter((w) => !w.includes("*"))) {
+        const found = findDeliverables(prepare(word)).map((d) => d.id);
+        expect(found, `${item.id}: „${word}“`).toContain(item.id);
+      }
+    }
+  });
+
+  it("Angebotenes: Antwort, kurzes Argument und direkt das Angebot einer Anfrage", () => {
+    const shirt = ask("Kannst du ein T-Shirt designen?");
+    expect(shirt.topicId).toBe("graphic");
+    expect(shirt.text).toContain("T-Shirts");
+    expect(shirt.text).toContain(pickFirst(askTexts.de.sales.pitch));
+    expect(shirt.context.offer).toBe("inquiry");
+    expect(shirt.context.inquiryType).toBe("Merch");
+    expect(shirt.replies).toEqual(askTexts.de.offerReplies);
+    expect(ask("Can you make YouTube thumbnails?", "en").text).toContain("YouTube thumbnails");
+    expect(ask("Kannst du mein Logo animieren?").topicId).toBe("logoAnimation");
+    expect(ask("Ich brauche eine Speisekarte für mein Restaurant").text).toContain("Speisekarten");
+  });
+
+  it("„Ja“ startet die Anfrage mit dem Projekt schon eingetragen", () => {
+    const talk = conversation("de", { random: () => 0 });
+    talk("Kannst du ein T-Shirt designen?");
+    const start = talk("Ja, gern");
+    expect(start.kind).toBe("inquiry");
+    expect(start.text).toContain("(Merch)");
+    expect(start.text).toContain("Bis wann");
+    talk("Noch offen");
+    talk("Weiß ich noch nicht");
+    expect(talk("Überspringen").text).toContain("– Projekt: Merch");
+  });
+
+  it("„Ja, ein Logo“ auf „Hast du ein Projekt im Kopf?“ trägt das Logo ein", () => {
+    const talk = conversation("de");
+    expect(talk("Was bietest du an?").context.offer).toBe("inquiry");
+    expect(talk("Ja, ein Logo").text).toContain("(Logo-Design)");
+  });
+
+  it("mehrere Dinge, teils angeboten, teils nicht", () => {
+    expect(ask("Kannst du mir ein Logo und Visitenkarten gestalten?").text).toContain(
+      "Logo-Design und Visitenkarten & Geschäftsausstattung? Na klar",
+    );
+    const mixed = ask("Kannst du Flyer gestalten und drucken?").text;
+    expect(mixed).toContain("Poster & Flyer? Na klar");
+    expect(mixed).toContain("Drucken lasse ich selbst nichts");
+  });
+
+  it("Nicht Angebotenes: ehrlich, ohne Verkaufsfrage", () => {
+    for (const q of [
+      "Kannst du mir einen Onlineshop bauen?",
+      "Kannst du einen Beat produzieren?",
+    ]) {
+      const answer = ask(q);
+      expect(answer.context.offer, q).toBeUndefined();
+      expect(answer.replies, q).toBeUndefined();
+    }
+    expect(ask("Kannst du einen Beat produzieren?").text).toContain("nur als Hobby");
+    expect(ask("Machst du Fotos?").topicId).toBe("photo");
+  });
+
+  it("Kommt aufs Projekt an: ehrlich, aber offen für eine Anfrage", () => {
+    const tattoo = ask("Kannst du ein Tattoo designen?");
+    expect(tattoo.text).toContain("Tattoo-Designs: Das ist nicht mein Schwerpunkt");
+    expect(tattoo.text).toContain(pickFirst(askTexts.de.sales.ask));
+    expect(tattoo.text).not.toContain(pickFirst(askTexts.de.sales.pitch));
+    expect(tattoo.context.inquiryType).toBe("Tattoo-Designs");
+  });
+
+  it("Unbekanntes Ding wird beim Namen genannt (ohne Links aus der Eingabe)", () => {
+    const dog = ask("Kannst du mir eine Hundehütte designen?");
+    expect(dog.kind).toBe("fallback");
+    expect(dog.text).toContain("„Hundehütte“ steht so nicht auf meiner Liste");
+    expect(dog.context.offer).toBe("inquiry");
+    expect(ask("Can you design a dog house for me?", "en").text).toContain("“dog house”");
+    expect(ask("Kannst du was Schönes für mich zeichnen?").text).toMatch(/^Das steht so nicht/);
+    // Eingaben werden nie zu Links in der Antwort
+    expect(askedObject("Kannst du mir eine [Hütte](https://x.de) designen?")).not.toMatch(
+      /[[\]()]/,
+    );
+  });
+
+  it("klare Fragen NACH etwas gehen vor („bis morgen“, KI, Preis)", () => {
+    expect(ask("Kannst du ein Logo bis morgen machen?").topicId).toBe("rush");
+    expect(ask("Do you use AI to make logos?", "en").topicId).toBe("ai");
+    expect(ask("Ich brauche ein Logo – was kostet das?").topicId).toBe("price");
+  });
+
+  it("das Verkaufsargument kommt nur einmal pro Gespräch", () => {
+    const talk = conversation("de", { random: () => 0 });
+    const pitch = pickFirst(askTexts.de.sales.pitch);
+    expect(talk("Kannst du ein Logo designen?").text).toContain(pitch);
+    expect(talk("Kannst du auch Flyer machen?").text).not.toContain(pitch);
+  });
+});
+
+describe("Frag Achim – Verkaufsthemen", () => {
+  it("„Warum du?“, „Bist du der Richtige?“, „Zu teuer“ und Leistungen führen zur Anfrage", () => {
+    for (const [question, topic] of [
+      ["Warum sollte ich dich buchen?", "whyMe"],
+      ["Bist du der Richtige für mein Projekt?", "fit"],
+      ["Das ist mir zu teuer", "lowBudget"],
+      ["Was bietest du an?", "services"],
+      ["Was kostet ein Logo?", "price"],
+    ]) {
+      const talk = conversation("de");
+      const answer = talk(question!);
+      expect(answer.topicId, question).toBe(topic);
+      expect(answer.context.offer, question).toBe("inquiry");
+      expect(talk("ja").kind, question).toBe("inquiry");
+    }
+    expect(answerLocally("Warum sollte ich dich buchen?", { lang: "de" }).text).toContain(
+      "über 50 Kunden",
+    );
+  });
+
+  it("Ja/Nein-Fragen zeigen Antwort-Buttons", () => {
+    expect(answerLocally("Wie erreiche ich dich?", { lang: "de" }).replies).toEqual([
+      "Ja, gern",
+      "Nein, danke",
+    ]);
+    expect(answerLocally("Who are you?", { lang: "en" }).replies).toBeUndefined();
+  });
+});
+
+function pickFirst(text: Text): string {
+  return Array.isArray(text) ? text[0]! : text;
+}

@@ -150,8 +150,9 @@ export const chatStore = {
     });
     const tokens = tokenize(answer.text);
     const animate = !prefersReducedMotion();
+    // Rückfragen und Schritte der Anfrage als Liste – Ja/Nein-Buttons als Chips
     const asksBack =
-      answer.kind === "clarify" || answer.kind === "unsure" || !!answer.replies?.length;
+      answer.kind === "clarify" || answer.kind === "unsure" || !!answer.context.inquiry;
     const suggestions: MessageOptions = {
       ids: answer.followUps,
       replies: answer.replies,
