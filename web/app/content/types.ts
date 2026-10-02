@@ -54,11 +54,7 @@ export type AskService = {
 } & Record<"de" | "en", { title: string; intro: string; steps: string[] }>;
 
 /** Alles, was der Chat aus dem Content-Layer bekommt (wächst mit der Website mit). */
-export type AskContent = {
-  projects: AskProject[];
-  services: AskService[];
-  socials: { label: string; url: string }[];
-};
+export type AskContent = { projects: AskProject[]; services: AskService[] };
 
 export type Service = {
   slug: ServiceSlug;

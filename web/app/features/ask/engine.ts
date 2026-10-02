@@ -17,7 +17,7 @@ import { site } from "~/config/site";
 import type { AskContent } from "~/content/types";
 import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
-import { applyContent, buildContentTopics, fill, isProjectTopic } from "./content";
+import { applyContent, buildContentTopics, fill, isProjectTopic, joinList } from "./content";
 import {
   askTexts,
   defaultChips,
@@ -27,6 +27,7 @@ import {
   offTopicWords,
   profile,
   referenceWords,
+  stemExceptions,
   synonyms,
   topics,
   type Text,
@@ -77,6 +78,8 @@ const SUFFIXES = ["ungen", "ing", "en", "er", "es", "et", "ed", "e", "n", "s", "
 const MIN_STEM = 4;
 
 export function stem(word: string): string {
+  const exception = stemExceptions[word];
+  if (exception) return exception;
   let result = word;
   for (let pass = 0; pass < 2; pass++) {
     const suffix = SUFFIXES.find((s) => result.endsWith(s) && result.length - s.length >= MIN_STEM);
@@ -224,6 +227,8 @@ const UNSURE = 2;
 const CLOSE = 0.85;
 /** zweite Frage in derselben Nachricht wird ab diesem Verhältnis mitbeantwortet */
 const SECOND = 0.7;
+/** so viel besser muss ein allgemeines Thema sein, um ein sicheres Fachgebiet zu schlagen */
+const GENERAL_LEAD = 1.5;
 
 /** Kleine Levenshtein-Distanz – reicht, um Tippfehler wie „brandign“ zu erkennen. */
 function distance(a: string, b: string): number {
@@ -391,10 +396,19 @@ function isBirthday(now: Date): boolean {
   return now.getMonth() + 1 === month && now.getDate() === day;
 }
 
+const socialLink = ({ label, url }: { label: string; url: string }) => `[${label}](${url})`;
+
 export function fillPlaceholders(text: string, lang: Locale, now = new Date()): string {
   return text
     .replaceAll("{base}", `/${lang}`)
     .replaceAll("{email}", site.email)
+    .replaceAll("{whatsapp}", site.whatsapp)
+    .replaceAll("{whatsappLink}", `https://wa.me/${site.whatsapp.replace(/\D/g, "")}`)
+    .replaceAll("{socials}", joinList(site.socials.map(socialLink), lang))
+    .replace(/\{social:(\w+)\}/g, (_, name: string) => {
+      const found = site.socials.find((s) => s.label.toLowerCase() === name.toLowerCase());
+      return found ? socialLink(found) : name;
+    })
     .replaceAll("{age}", String(ageAt(now)))
     .replaceAll("{birthdayNote}", isBirthday(now) ? askTexts[lang].birthdayToday : "");
 }
@@ -578,8 +592,11 @@ export function answerLocally(question: string, options: AskOptions): AskAnswer 
     return answerTopic({ topic: lastAspect, subject: subject.topic.id }, context, k, env);
   }
 
-  // 3. Fachgebiet schlägt Allgemeines („Was machst du für Musik?“ → Musik, nicht Leistungen)
-  const main = subjects.find(isStrong) ?? top;
+  // 3. Fachgebiet schlägt Allgemeines („Was machst du für Musik?“ → Musik, nicht Leistungen) –
+  //    außer das allgemeine Thema passt deutlich besser („Bist du auf Social Media?“)
+  const strongSubject = subjects.find(isStrong);
+  const main =
+    strongSubject && top.score < strongSubject.score * GENERAL_LEAD ? strongSubject : top;
   const rest = candidates.filter((entry) => entry !== main);
 
   // Rückfrage, wenn zwei verschiedene Fachgebiete gleich gut passen („Cover oder Logo?“)

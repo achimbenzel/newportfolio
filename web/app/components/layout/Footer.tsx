@@ -59,6 +59,21 @@ export function Footer() {
                 </li>
               </ul>
             </div>
+            {site.socials.length > 0 && (
+              <div>
+                <p className={styles.colTitle}>{t.footer.social}</p>
+                <ul role="list" className={styles.list}>
+                  {site.socials.map((social) => (
+                    <li key={social.url}>
+                      <a href={social.url} target="_blank" rel="me noopener noreferrer">
+                        {social.label}
+                        <span className="sr-only"> {t.a11y.newTab}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div>
               <p className={styles.colTitle}>{t.footer.legal}</p>
               <ul role="list" className={styles.list}>

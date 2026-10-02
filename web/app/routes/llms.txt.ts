@@ -51,7 +51,9 @@ export async function loader() {
 
 - Website: ${site.url}
 - E-Mail: ${site.email}
+- Ort / Location: Mainz, Deutschland / Germany
 - Sprachen / Languages: Deutsch (/de/), English (/en/)
+${site.socials.map((s) => `- ${s.label}: ${s.url}`).join("\n")}
 
 ${sections.join("\n\n")}
 `;

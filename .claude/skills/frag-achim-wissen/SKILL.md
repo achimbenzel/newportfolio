@@ -41,9 +41,11 @@ ohne Code-Änderung mitwachsen. Texte, die auf der Website stehen, nicht zusätz
 - Mindestens **zwei Beispielfragen pro Sprache** (`examples.de`, `examples.en`) – sie liefern
   Stichwörter und werden automatisch getestet. Wenige eindeutige `keywords`, Mehrwort-Ausdrücke
   bevorzugen, `*` für Lücken („wie läuft * ab“). Synonyme in `synonyms`, nicht in `keywords`.
-- Antworten `de.a` und `en.a` im Ton der **Persönlichkeit** (Kopf von `knowledge.ts`): freundlich,
-  direkt, professionell, „du“, 1–3 Sätze, keine Emojis, über Achim in der 3. Person, ehrlich →
+- Antworten `de.a` und `en.a` im Ton der **Persönlichkeit** (Kopf von `knowledge.ts`): als Achim
+  in der **Ich-Form**, duzen, freundlich, direkt, professionell, 1–3 Sätze, keine Emojis, ehrlich →
   bei Unklarem auf `{email}` verweisen. Gern Varianten als Liste.
+- Kontaktdaten/Profile nie abtippen, sondern Platzhalter nutzen (`{email}`, `{whatsapp}`,
+  `{socials}`, `{social:behance}` – Werte in `web/app/config/site.ts`).
 - Gibt es je Fachgebiet eine andere Antwort? → `facets` beim Aspekt.
 - `label` + `q` setzen, wenn das Thema als Vorschlag (Chip) auftauchen kann.
 - Werte, die sich ändern (Alter …), nie fest eintragen, sondern berechnen (`profile`, Platzhalter).

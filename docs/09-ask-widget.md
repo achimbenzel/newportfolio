@@ -24,10 +24,12 @@ passende Antwort. Dafür nutzt es ein paar Techniken, die es trotzdem „gesprä
 
 ## Persönlichkeit
 
-Der Bot ist **Achims Assistent**: freundlich, direkt und auf den Punkt – locker im Ton („du“,
-kurze Sätze), aber professionell. Er ist ehrlich, wenn er etwas nicht weiß (→ verweist auf die
-E-Mail), nutzt keine Floskeln und keine Emojis. Über sich spricht er in der 1. Person („ich“),
-über Achim in der 3. Person. Antworten: 1–3 Sätze, lieber auf eine Seite verlinken.
+Der Bot spricht **als Achim in der Ich-Form** und **duzt**: freundlich, direkt und auf den Punkt –
+locker im Ton, aber professionell. Er ist ehrlich, wenn er etwas nicht weiß (→ andere Frage oder
+E-Mail), nutzt keine Floskeln und keine Emojis. Antworten: 1–3 Sätze, lieber auf eine Seite verlinken.
+
+**Transparenz:** Die Oberfläche zeigt „Achim · Assistent“, und auf „Bist du eine KI/ein Bot?“
+antwortet er ehrlich, dass hier ein kleines Programm in Achims Namen antwortet (Thema `bot`).
 
 Damit er nicht wie ein Automat wirkt, können Antworten **Varianten** haben (Liste statt Text) –
 dann wird zufällig gewählt. Die Persönlichkeit steht auch oben in `knowledge.ts`; neue Texte bitte
@@ -109,16 +111,16 @@ Beispiel-Wort) gibt es Vorschläge statt einer geratenen Antwort.
 
 ## Dateien (`web/app/features/ask/`)
 
-| Datei               | Inhalt                                                                            |
-| ------------------- | --------------------------------------------------------------------------------- |
-| `knowledge.ts`      | **Wissensbasis**: Persönlichkeit, Themen, Antworten DE/EN, Synonyme, Begrüßungen  |
-| `knowledge.test.ts` | **Testfragen** + automatische Prüfung aller Beispielfragen (`npm test`)           |
-| `engine.ts`         | Antwortlogik (Aufbereitung, Gewichtung, Entscheidung, Gedächtnis), Link-Parser    |
-| `content.ts`        | macht aus Website-Inhalten (Projekte, Leistungen, Social) automatisch Chat-Wissen |
-| `greeting.ts`       | Begrüßung je nach Tageszeit (zufällig, nur im Browser)                            |
-| `store.ts`          | Chat-Zustand, Gesprächsgedächtnis, Tipp-Animation (im Arbeitsspeicher)            |
-| `config.ts`         | Einstellungen (Tippgeschwindigkeit, optionales Backend)                           |
-| `AskWidget.tsx`     | Oberfläche (`TimeGreeting.tsx` = Begrüßungszeile)                                 |
+| Datei               | Inhalt                                                                           |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `knowledge.ts`      | **Wissensbasis**: Persönlichkeit, Themen, Antworten DE/EN, Synonyme, Begrüßungen |
+| `knowledge.test.ts` | **Testfragen** + automatische Prüfung aller Beispielfragen (`npm test`)          |
+| `engine.ts`         | Antwortlogik (Aufbereitung, Gewichtung, Entscheidung, Gedächtnis), Link-Parser   |
+| `content.ts`        | macht aus Website-Inhalten (Projekte, Leistungen) automatisch Chat-Wissen        |
+| `greeting.ts`       | Begrüßung je nach Tageszeit (zufällig, nur im Browser)                           |
+| `store.ts`          | Chat-Zustand, Gesprächsgedächtnis, Tipp-Animation (im Arbeitsspeicher)           |
+| `config.ts`         | Einstellungen (Tippgeschwindigkeit, optionales Backend)                          |
+| `AskWidget.tsx`     | Oberfläche (`TimeGreeting.tsx` = Begrüßungszeile)                                |
 
 Dazu im Content-Layer: `web/app/content/ask.server.ts` (`getAskContent()`) sammelt beim Build alles,
 was der Chat aus den Inhalten wissen soll.
@@ -135,11 +137,11 @@ Deutsch und Englisch.** Dafür gibt es zwei Wege:
 
 **Bereits automatisch angebunden** (kein Eintrag in `knowledge.ts` nötig):
 
-| Inhalt                     | Was der Chat daraus macht                                                         |
-| -------------------------- | --------------------------------------------------------------------------------- |
-| Projekte                   | eigenes Thema je Projekt, Projektliste (auch je Fachgebiet), Branchen-Themen      |
-| Leistungsseiten            | Einleitung = Antwort zu Branding/Motion/Musik, Ablauf-Schritte = Antwort „Ablauf“ |
-| Social-Profile (`site.ts`) | Antwort auf „Wie ist dein Instagram?“, sobald Profile eingetragen sind            |
+| Inhalt                   | Was der Chat daraus macht                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| Projekte                 | eigenes Thema je Projekt, Projektliste (auch je Fachgebiet), Branchen-Themen          |
+| Leistungsseiten          | Einleitung = Antwort zu Branding/Motion/Musik, Ablauf-Schritte = Antwort „Ablauf“     |
+| Social-Profile, WhatsApp | aus `config/site.ts` über Platzhalter (`{socials}`, `{social:behance}`, `{whatsapp}`) |
 
 **Neue Seite oder neue Inhaltsart, die Wissen enthält** (z. B. „Über mich“-Text, FAQ, Preise,
 Testimonials) – immer mitdenken:
@@ -180,7 +182,9 @@ der diese Schritte bei jeder inhaltlichen Änderung an der Website anstößt.
 
 - `label` = Text des Vorschlag-Chips, `q` = Frage beim Klick, `a` = Antwort (Text oder Liste von
   Varianten). `followUps: []` = Vorschläge passend zum Gesprächsthema.
-- Platzhalter: `{base}` → `/de` bzw. `/en`, `{email}` → Kontaktadresse, `{age}`, `{birthdayNote}`.
+- Platzhalter: `{base}` → `/de` bzw. `/en`, `{email}` → E-Mail, `{age}`, `{birthdayNote}`,
+  `{whatsapp}` / `{whatsappLink}`, `{socials}` (alle Profile als Links), `{social:instagram}`
+  (ein Profil). Kontaktdaten stehen nur in `config/site.ts` – nie direkt in Antworten tippen.
   Links als `[Text](url)`.
 - `keywords` mit `*` = Lücke: `"wie läuft * ab"` passt auch auf „Wie läuft ein Branding-Projekt ab?“.
 
@@ -196,6 +200,9 @@ Wörter einer Gruppe gelten als gleich – in der Frage und in den Stichwörtern
 Ein neues Wort in die Gruppe → es funktioniert sofort bei **allen** Themen. Endungen,
 Groß-/Kleinschreibung, Umlaute und Tippfehler mit einem falschen Buchstaben werden automatisch
 angeglichen.
+
+Kürzt der Wortstamm ein Wort falsch (z. B. „Poster“ → „post“ wie ein Social-Media-Post), hilft ein
+Eintrag in `stemExceptions`.
 
 ### Typische Aufgaben
 

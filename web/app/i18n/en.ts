@@ -15,6 +15,7 @@ export const en: Dictionary = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     languageSwitch: "Choose language",
+    newTab: "(opens in a new tab)",
   },
   nav: {
     services: "Services",
@@ -82,6 +83,7 @@ export const en: Dictionary = {
     legal: "Legal",
     imprint: "Imprint",
     privacy: "Privacy policy",
+    social: "Social media",
     cookieSettings: "Cookie settings",
     rights: "All rights reserved.",
   },

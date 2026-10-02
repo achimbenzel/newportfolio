@@ -101,6 +101,36 @@ const cases: [string, string | null, Locale][] = [
   ["Kann ich Referenzen sehen?", "work", "de"],
   ["Wie ist deine E-Mail-Adresse?", "contact", "de"],
 
+  // Neue Infos (Fragen außerhalb der Beispielfragen)
+  ["Woher kommst du?", "location", "de"],
+  ["Machst du Social Media?", "socialContent", "de"],
+  ["Machst du Instagram-Posts?", "socialContent", "de"],
+  ["Hast du LinkedIn?", "social", "de"],
+  ["Machst du Webdesign?", "website", "de"],
+  ["Machst du Websites mit WordPress?", "website", "de"],
+  ["Kannst du mit Resolume arbeiten?", "stage", "de"],
+  ["Machst du Merch für meine Band?", "graphic", "de"],
+  ["Machst du auch Sound?", "sound", "de"],
+  ["Machst du Fotos?", "photo", "de"],
+  ["Gibt es einen Mindestpreis?", "minimum", "de"],
+  ["Machst du auch kleine Sachen unter 300 Euro?", "minimum", "de"],
+  ["Bist du Kleinunternehmer?", "payment", "de"],
+  ["Was kosten weitere Korrekturen?", "revisions", "de"],
+  ["Darf ich das Logo überall nutzen?", "rights", "de"],
+  ["Bekomme ich die PSD?", "source", "de"],
+  ["Bekomme ich ein SVG?", "formats", "de"],
+  ["Ich brauche das bis morgen", "rush", "de"],
+  ["Wie ist deine Nummer?", "contact", "de"],
+  ["Are your designs made with AI?", "ai", "en"],
+  ["What was your grade?", "grade", "en"],
+  ["Hast du für bekannte Leute gearbeitet?", "clients", "de"],
+  ["Hast du Kunden in den USA?", "clients", "de"],
+  ["Lieblingsschrift?", "favoriteFont", "de"],
+  ["Gehst du auf Festivals?", "musicTaste", "de"],
+  ["Warst du schon mal in Japan?", "travel", "de"],
+  ["Sammelst du Platten?", "collecting", "de"],
+  ["Speicherst du meine Daten?", "privacy", "de"],
+
   // Tippfehler
   ["Wie lange dauert ein Brandign?", "duration", "de"],
   ["Do you do anmation?", "motion", "en"],
@@ -145,9 +175,40 @@ describe("Frag Achim – Beispielfragen", () => {
 const variants = (text: Text) => (Array.isArray(text) ? text : [text]);
 
 describe("Frag Achim – Inhalte", () => {
-  it("gibt keine offenen Projektdateien heraus", () => {
-    expect(answerLocally("Bekomme ich die Projektdateien?", { lang: "de" }).text).toMatch(/^Nein/);
-    expect(answerLocally("Do I get the project files?", { lang: "en" }).text).toMatch(/^No/);
+  it("Projektdateien nur nach Absprache", () => {
+    expect(answerLocally("Bekomme ich die Projektdateien?", { lang: "de" }).text).toContain(
+      "nicht automatisch dabei",
+    );
+    expect(answerLocally("Do I get the project files?", { lang: "en" }).text).toContain(
+      "aren't included by default",
+    );
+  });
+
+  it("nennt Kontaktwege mit Links (E-Mail, WhatsApp, Instagram, X)", () => {
+    const answer = answerLocally("Wie erreiche ich dich?", { lang: "de" }).text;
+    expect(answer).toContain("(mailto:info@achimbenzel.com)");
+    expect(answer).toContain("(https://wa.me/491639877331)");
+    expect(answer).toContain("[Instagram](https://instagram.com/achimbenzel)");
+    expect(answer).toContain("[X](https://x.com/achimbenzel)");
+    expect(answer).not.toMatch(/\{\w+(:\w+)?\}/);
+  });
+
+  it("listet alle Social-Profile und verweist für mehr Arbeiten auf Behance", () => {
+    const social = answerLocally("Wie ist dein Instagram?", { lang: "en" }).text;
+    for (const name of ["LinkedIn", "Instagram", "Behance", "Pinterest", "X"])
+      expect(social).toContain(`[${name}](`);
+    expect(answerLocally("Kann ich Referenzen sehen?", { lang: "de" }).text).toContain(
+      "[Behance](https://behance.net/achimbenzel)",
+    );
+  });
+
+  it("keine Antwort enthält unbekannte Platzhalter", () => {
+    for (const topic of topics) {
+      for (const lang of ["de", "en"] as const) {
+        const text = answerLocally("", { lang, topicId: topic.id, random: () => 0 }).text;
+        expect(text, topic.id).not.toMatch(/\{\w+(:\w+)?\}/);
+      }
+    }
   });
 
   it("nennt zwei Korrekturschleifen als Standard", () => {
@@ -160,7 +221,7 @@ describe("Frag Achim – Inhalte", () => {
   it("beantwortet zwei Fragen in einer, hängt aber kein bloßes Fachgebiet an", () => {
     const both = answerLocally("Wie lange dauert ein Logo und was kostet es?", { lang: "de" });
     expect(both.topicId).toBe("duration");
-    expect(both.text).toContain("Außerdem: Feste Preise gibt es nicht");
+    expect(both.text).toContain("Außerdem: Feste Preise oder Richtwerte gibt es bei mir nicht");
     expect(answerLocally("Wie teuer ist ein Logo?", { lang: "de" }).text).not.toContain("Außerdem");
     expect(answerLocally("Hallo, was kostet ein Logo?", { lang: "de" }).text).not.toContain(
       "Außerdem",
@@ -322,7 +383,7 @@ describe("Frag Achim – Rückfragen & Unsicherheit", () => {
     expect(answerLocally("Wie lange hast du studiert?", { lang: "de" }).topicId).toBe("studied");
     const both = answerLocally("Wer bist du und was kostet ein Logo?", { lang: "de" });
     expect(both.topicId).toBe("about");
-    expect(both.text).toContain("Außerdem: Feste Preise gibt es nicht");
+    expect(both.text).toContain("Außerdem: Feste Preise oder Richtwerte gibt es bei mir nicht");
   });
 
   it("„Erzähl mehr“ schlägt Themen passend zum Gespräch vor", () => {
@@ -353,7 +414,7 @@ describe("Frag Achim – berechnete Antworten", () => {
       lang: "en",
       now: new Date(2026, 5, 1),
     });
-    expect(normal.text).toBe("Achim's birthday is on 4 October.");
+    expect(normal.text).toBe("My birthday is on 4 October.");
     const today = answerLocally("Wann hast du Geburtstag?", {
       lang: "de",
       now: new Date(2026, 9, 4),
@@ -444,7 +505,7 @@ const services: AskService[] = [
   },
 ];
 
-const content: AskContent = { projects, services, socials: [] };
+const content: AskContent = { projects, services };
 
 describe("Frag Achim – Kundenprojekte", () => {
   const ask = (question: string, lang: Locale = "de") => answerLocally(question, { lang, content });
@@ -455,7 +516,7 @@ describe("Frag Achim – Kundenprojekte", () => {
     ["Was ist LumaKeys?", "project:lumakeys"],
     ["Hast du schon mal ein Café gestaltet?", "project:gute-stube"],
     ["Hast du schon was für Gastronomie gemacht?", "industry:gastronomie"],
-    ["Für welche Kunden hast du gearbeitet?", "work"],
+    ["Für welche Kunden hast du gearbeitet?", "clients"],
     ["Kann ich Referenzen sehen?", "work"],
   ])("„%s“ → %s", (question, expected) => {
     expect(ask(question).topicId).toBe(expected);
@@ -492,7 +553,7 @@ describe("Frag Achim – Kundenprojekte", () => {
   it("Aspekt-Frage zu einem Projekt antwortet fürs Fachgebiet des Projekts", () => {
     const answer = ask("Wie lange hat Gute Stube gedauert?");
     expect(answer.topicId).toBe("duration");
-    expect(answer.text).toMatch(/^Wie das genau bei Gute Stube Freisen war/);
+    expect(answer.text).toMatch(/^Für Gute Stube Freisen kann ich dir hier keine genauen Angaben/);
     expect(answer.text).toContain("sechs bis zehn Wochen");
   });
 

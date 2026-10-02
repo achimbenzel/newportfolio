@@ -13,15 +13,14 @@ Stand: Grundstruktur + optischer Prototyp. Die folgenden Punkte sind bewusst noc
       Spam-Schutz ohne Drittanbieter-Tracking, Datenschutzhinweis
 - [ ] **Ask-Widget-Inhalte**: finale Informationen in `web/app/features/ask/knowledge.ts`
       (Projekte, Leistungsseiten und Social-Profile kommen schon automatisch aus dem Content-Layer)
-- [ ] Ask-Widget: Wissenslücken schließen, die beim Testen auffielen – z. B. „Machst du Websites/
-      Webdesign?“, „Machst du Social-Media-Content/Fotografie?“, „Wo wohnst du?“ (aktuell ehrliche
-      „Weiß ich nicht → E-Mail“-Antwort)
+- [ ] Ask-Widget: **Kundenstimmen** (Testimonials) mit den Projekten in Sanity pflegen und – wie
+      Projekte – automatisch an den Chat anbinden (`content/ask.server.ts` → `features/ask/content.ts`)
 
 ## Technik
 
 - [ ] **Automatischer Rebuild**: Sanity-Webhook → Build (z. B. GitHub Actions / Server-Skript) → Deploy
-- [ ] `siteSettings` aus Sanity anbinden (E-Mail, Social-Links, Standard-Vorschaubild) – Social-Links
-      dann auch in `getAskContent()` statt aus `config/site.ts`
+- [ ] `siteSettings` aus Sanity anbinden (E-Mail, Social-Links, Standard-Vorschaubild) – bis dahin
+      stehen E-Mail, WhatsApp und Social-Links in `web/app/config/site.ts` (Footer, JSON-LD, Chat)
 - [ ] Social-/OG-Bild (1200 × 630) gestalten und einbinden (`site.defaultOgImage`)
 - [ ] App-Icons als PNG (180 px Apple-Touch, 192/512 px) + `site.webmanifest`
 - [ ] Projekttexte als Rich Text (Portable Text) statt Plain Text, falls Formatierung gebraucht wird

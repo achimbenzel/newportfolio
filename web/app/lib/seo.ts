@@ -96,6 +96,8 @@ export function personJsonLd(locale: Locale): Record<string, unknown> {
     url: localizedUrl(locale, "/"),
     email: `mailto:${site.email}`,
     jobTitle: locale === "de" ? "Freiberuflicher Designer" : "Freelance Designer",
+    address: { "@type": "PostalAddress", addressLocality: "Mainz", addressCountry: "DE" },
+    alumniOf: { "@type": "CollegeOrUniversity", name: "Hochschule Mainz" },
     knowsAbout: [
       "Branding",
       "Logo Design",
@@ -103,6 +105,8 @@ export function personJsonLd(locale: Locale): Record<string, unknown> {
       "Motion Design",
       "3D",
       "Music Visuals",
+      "Social Media Content",
+      "Sound Design",
     ],
     sameAs: site.socials.map((s) => s.url),
   };

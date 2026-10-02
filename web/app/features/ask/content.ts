@@ -9,7 +9,6 @@
  * - Projektliste  „Welche Projekte hast du gemacht?“ → Thema „work“, je Fachgebiet gefiltert
  * - Leistungen    Einleitung + Ablauf der Leistungsseiten ersetzen die festen Antworten
  *                 von branding/motion/music und die Ablauf-Antworten (process)
- * - Social Media  verlinkte Profile ersetzen die Antwort von „social“
  *
  * Neue Inhaltsart? → Daten in content/ask.server.ts holen, hier in Themen übersetzen.
  */
@@ -187,10 +186,7 @@ function stepsText(service: AskService, lang: Locale): string {
  * Gibt die festen Themen mit Inhalten aus dem Content-Layer zurück (Kopien – die Originale
  * in knowledge.ts bleiben unverändert und dienen als Fallback).
  */
-export function applyContent(
-  topics: Topic[],
-  { projects, services, socials }: AskContent,
-): Topic[] {
+export function applyContent(topics: Topic[], { projects, services }: AskContent): Topic[] {
   const parents = new Map(topics.map((topic) => [topic.id, topic.parent]));
   /** Fachgebiet + alle übergeordneten (Logo → Branding) */
   const chain = (id: string | undefined): string[] =>
@@ -229,19 +225,6 @@ export function applyContent(
         de: { ...topic.de, a: answer.de },
         en: { ...topic.en, a: answer.en },
       };
-    }
-
-    // Social-Media-Profile
-    if (topic.id === "social" && socials.length > 0) {
-      const answer = byLocale((lang) =>
-        fill(askTexts[lang].socials, {
-          list: joinList(
-            socials.map((s) => `[${s.label}](${s.url})`),
-            lang,
-          ),
-        }),
-      );
-      return { ...topic, de: { ...topic.de, a: answer.de }, en: { ...topic.en, a: answer.en } };
     }
 
     // Projektliste – insgesamt und je Fachgebiet („Welche Logo-Projekte …?“)

@@ -8,16 +8,17 @@
 
 **Der Browser des Besuchers verbindet sich nur mit unserem eigenen Server.**
 
-| Thema             | Umsetzung                                                                                                |
-| ----------------- | -------------------------------------------------------------------------------------------------------- |
-| Schriften         | DM Sans & JetBrains Mono liegen lokal in `web/public/fonts` – keine Google-Fonts-Anfrage                 |
-| Bilder aus Sanity | beim Build heruntergeladen, ausgeliefert unter `/media/…` – keine Anfrage an `cdn.sanity.io`             |
-| Inhalte (CMS)     | werden beim Build geholt – Besucher sprechen nie mit Sanity                                              |
-| Skripte/CSS       | nur eigene, gebündelte Dateien – kein CDN                                                                |
-| Tracking          | keins                                                                                                    |
-| Ask-Widget        | antwortet lokal im Browser, speichert nichts (nur Arbeitsspeicher, weg nach Neuladen)                    |
-| Videos            | nur nach Einwilligung bzw. Klick (`ConsentGate`), YouTube über `youtube-nocookie.com`, Vimeo mit `dnt=1` |
-| Hosting           | statische Dateien auf eigenem Server in Deutschland                                                      |
+| Thema             | Umsetzung                                                                                                      |
+| ----------------- | -------------------------------------------------------------------------------------------------------------- |
+| Schriften         | DM Sans & JetBrains Mono liegen lokal in `web/public/fonts` – keine Google-Fonts-Anfrage                       |
+| Bilder aus Sanity | beim Build heruntergeladen, ausgeliefert unter `/media/…` – keine Anfrage an `cdn.sanity.io`                   |
+| Inhalte (CMS)     | werden beim Build geholt – Besucher sprechen nie mit Sanity                                                    |
+| Skripte/CSS       | nur eigene, gebündelte Dateien – kein CDN                                                                      |
+| Tracking          | keins                                                                                                          |
+| Ask-Widget        | antwortet lokal im Browser, speichert nichts (nur Arbeitsspeicher, weg nach Neuladen)                          |
+| Videos            | nur nach Einwilligung bzw. Klick (`ConsentGate`), YouTube über `youtube-nocookie.com`, Vimeo mit `dnt=1`       |
+| Hosting           | statische Dateien auf eigenem Server in Deutschland                                                            |
+| Social & WhatsApp | reine Links (Footer, Chat) – erst der Klick verbindet mit LinkedIn, Instagram, Behance, Pinterest, X, WhatsApp |
 
 ## Cookie-/Consent-Banner
 
@@ -59,11 +60,24 @@ Sanity verarbeitet nur Redaktionsdaten (Login, Inhalte) – keine Besucherdaten,
 Build-Zeit abfragt. Für das Redaktionskonto den Auftragsverarbeitungsvertrag (DPA) von Sanity
 abschließen und in der Datenschutzerklärung nennen, falls erforderlich.
 
+## Kontakt über WhatsApp, Instagram- und X-DMs
+
+Die Website verlinkt WhatsApp (`config/site.ts → whatsapp`) und die Social-Profile nur – es werden
+keine Skripte oder Widgets dieser Dienste geladen. Schreibt jemand über WhatsApp oder per DM,
+verarbeiten aber Meta bzw. X die Daten (auch in den USA).
+
+Wichtig: „Wer über WhatsApp schreibt, ist automatisch einverstanden“ reicht nach DSGVO allein
+nicht. Nötig ist ein **Abschnitt in der Datenschutzerklärung** (Kontakt per WhatsApp/Instagram/X:
+Zweck, Rechtsgrundlage – meist Art. 6 Abs. 1 lit. b bzw. f DSGVO –, Übermittlung an Meta/X,
+Drittlandtransfer, Speicherdauer, Link zu deren Datenschutzhinweisen). Der Chat weist bei der
+Frage nach Datenschutz darauf hin (Thema `privacy`). Rechtliche Formulierung: Generator oder Anwalt.
+
 ## Checkliste vor dem Livegang
 
 - [ ] **Impressum** (§ 5 DDG) unter `/de/imprint` und `/en/imprint`
 - [ ] **Datenschutzerklärung** unter `/de/privacy` und `/en/privacy` (Hosting, Server-Logs,
-      Kontaktformular, Consent, Vimeo/YouTube, ggf. Sanity, ggf. KI-Backend des Ask-Widgets)
+      Kontaktformular, Consent, Vimeo/YouTube, **Kontakt per WhatsApp/Instagram/X**, Social-Links,
+      ggf. Sanity, ggf. KI-Backend des Ask-Widgets)
 - [ ] AV-Vertrag mit dem Hoster
 - [ ] Server-Logs: Speicherdauer festlegen (IP-Adressen kürzen/kurz halten)
 - [ ] `Content-Security-Policy` im nginx ergänzen (siehe unten)

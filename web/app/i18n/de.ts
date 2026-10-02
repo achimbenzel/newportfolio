@@ -17,6 +17,7 @@ export const de = {
     openMenu: "Menü öffnen",
     closeMenu: "Menü schließen",
     languageSwitch: "Sprache wählen",
+    newTab: "(öffnet in neuem Tab)",
   },
   nav: {
     services: "Leistungen",
@@ -85,6 +86,7 @@ export const de = {
     legal: "Rechtliches",
     imprint: "Impressum",
     privacy: "Datenschutz",
+    social: "Social Media",
     cookieSettings: "Cookie-Einstellungen",
     rights: "Alle Rechte vorbehalten.",
   },

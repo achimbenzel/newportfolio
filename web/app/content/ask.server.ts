@@ -7,7 +7,6 @@
  * Verarbeitung in features/ask/content.ts. Anleitung: docs/09-ask-widget.md
  */
 import { serviceSlugs } from "~/config/services";
-import { site } from "~/config/site";
 import type { Locale } from "~/i18n/config";
 import { isSanityConfigured, sanityFetch } from "~/lib/sanity/client.server";
 import { askProjectsQuery } from "~/lib/sanity/queries";
@@ -83,6 +82,5 @@ export async function getAskServices(): Promise<AskService[]> {
 
 export async function getAskContent(): Promise<AskContent> {
   const [projects, services] = await Promise.all([getAskProjects(), getAskServices()]);
-  // Social-Profile: vorerst aus config/site.ts (später aus den Sanity-Einstellungen)
-  return { projects, services, socials: [...site.socials] };
+  return { projects, services };
 }
