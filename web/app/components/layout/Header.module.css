@@ -1,0 +1,348 @@
+/* ── Rahmen: fixierte, zentrierte Insel ─────────────────────────── */
+.header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: var(--z-header);
+  display: flex;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) var(--space-3) 0;
+  pointer-events: none;
+}
+
+.island {
+  pointer-events: auto;
+  width: min(100%, 800px);
+  background: var(--color-glass);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--duration-slow) var(--ease-out),
+    background var(--duration-slow) var(--ease-out),
+    border-color var(--duration-slow) var(--ease-out);
+  /* Einflug beim ersten Laden (läuft auch ohne JavaScript) */
+  animation: island-in 1.1s var(--ease-out) 0.15s both;
+}
+
+@keyframes island-in {
+  from {
+    opacity: 0;
+    transform: translateY(-120%) scale(0.92);
+    filter: blur(10px);
+  }
+}
+
+.island[data-scrolled] {
+  background: rgb(22 22 26 / 0.86);
+  box-shadow: var(--shadow-md);
+}
+
+.island[data-open] {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Obere Leiste ───────────────────────────────────────────────── */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 60px;
+  padding: 0 8px 0 18px;
+}
+
+.logo {
+  flex: none;
+  display: flex;
+  align-items: center;
+  color: var(--color-wordmark);
+  border-radius: var(--radius-sm);
+}
+
+.logoSvg {
+  height: 22px;
+  width: auto;
+}
+
+.nav {
+  margin-left: auto;
+}
+
+.navList {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.navItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.55rem 0.75rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: rgb(232 234 240 / 0.72);
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-fast),
+    background var(--duration-fast);
+}
+
+.navItem:hover,
+.navItem[aria-expanded="true"],
+.active {
+  color: var(--color-text);
+  background: rgb(255 255 255 / 0.06);
+}
+
+.chevron {
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.navItem[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Menü-Button (nur mobil) ────────────────────────────────────── */
+.menuButton {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  transition: background var(--duration-fast);
+}
+
+.menuButton:hover {
+  background: color-mix(in oklab, var(--color-accent), white 12%);
+}
+
+.menuIcon,
+.menuIcon::before,
+.menuIcon::after {
+  display: block;
+  width: 18px;
+  height: 1.75px;
+  border-radius: 2px;
+  background: var(--color-on-accent);
+  transition:
+    transform var(--duration-slow) var(--ease-in-out),
+    opacity var(--duration-base);
+}
+
+.menuIcon {
+  position: relative;
+  background: transparent;
+}
+
+.menuIcon::before,
+.menuIcon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.menuIcon::before {
+  transform: translateY(-4px);
+}
+
+.menuIcon::after {
+  transform: translateY(4px);
+}
+
+.menuButton[aria-expanded="true"] .menuIcon::before {
+  transform: rotate(45deg);
+}
+
+.menuButton[aria-expanded="true"] .menuIcon::after {
+  transform: rotate(-45deg);
+}
+
+/* ── Aufklappbereich: weiche Höhen-Animation ohne JS-Messung ────── */
+.expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.55s var(--ease-in-out);
+}
+
+.island[data-open] .expand {
+  grid-template-rows: 1fr;
+  transition-duration: 0.7s;
+  transition-timing-function: var(--ease-out);
+}
+
+.expandInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Gestaffeltes Einblenden der Inhalte */
+.stagger {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(4px);
+  transition:
+    opacity 0.3s var(--ease-out),
+    transform 0.3s var(--ease-out),
+    filter 0.3s var(--ease-out);
+}
+
+.island[data-open] .stagger {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition-duration: 0.6s;
+  transition-delay: calc(0.08s + var(--i, 0) * 0.045s);
+}
+
+/* ── Desktop: Leistungen-Panel ──────────────────────────────────── */
+.services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-2);
+}
+
+.serviceCard {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.03);
+  border: 1px solid var(--color-border);
+  transition:
+    background var(--duration-base),
+    border-color var(--duration-base);
+}
+
+.serviceCard:hover {
+  background: rgb(var(--color-accent-rgb) / 0.14);
+  border-color: rgb(var(--color-accent-rgb) / 0.45);
+}
+
+.serviceIndex {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-accent-text);
+}
+
+.serviceTitle {
+  margin-top: var(--space-4);
+  font-weight: 600;
+}
+
+.serviceTeaser {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.serviceArrow {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  color: var(--color-text-subtle);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    color var(--duration-base);
+}
+
+.serviceCard:hover .serviceArrow {
+  color: var(--color-text);
+  transform: translate(2px, -2px);
+}
+
+/* ── Mobil: Vollmenü ────────────────────────────────────────────── */
+.menu {
+  display: none;
+  padding: var(--space-2) 18px var(--space-5);
+}
+
+.menuLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+}
+
+.menuServices {
+  margin: var(--space-2) 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-3);
+}
+
+.menuServiceLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+}
+
+.menuServiceLink:hover {
+  color: var(--color-text);
+}
+
+.menuLink {
+  display: block;
+  padding: 0.35rem 0;
+  font-size: clamp(1.7rem, 8vw, 2.3rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  color: rgb(232 234 240 / 0.75);
+  transition: color var(--duration-fast);
+}
+
+.menuLink:hover,
+.menuLink[aria-current="page"] {
+  color: var(--color-text);
+}
+
+.menuMail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── Breakpoint: Mobil/Tablet ───────────────────────────────────── */
+@media (max-width: 959px) {
+  .nav,
+  .services {
+    display: none;
+  }
+  .menu {
+    display: block;
+  }
+  .menuButton {
+    display: grid;
+  }
+  .tools {
+    margin-left: auto;
+  }
+  .bar {
+    height: 58px;
+    padding: 0 7px 0 14px;
+  }
+  .logoSvg {
+    height: clamp(17px, 5vw, 20px);
+  }
+}

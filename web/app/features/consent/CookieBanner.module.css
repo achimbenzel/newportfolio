@@ -1,0 +1,180 @@
+.banner {
+  position: fixed;
+  z-index: var(--z-banner);
+  right: max(var(--space-4), env(safe-area-inset-right));
+  bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  width: min(440px, calc(100vw - 2 * var(--space-4)));
+  max-height: calc(100svh - 2 * var(--space-4));
+  overflow-y: auto;
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
+  background: var(--color-surface);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: banner-in var(--duration-slower) var(--ease-out) 0.6s both;
+}
+
+@keyframes banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+    filter: blur(6px);
+  }
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: 0;
+  outline: none;
+}
+
+.text {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-normal);
+}
+
+.inlineLink {
+  color: var(--color-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+/* Beide Hauptbuttons bewusst GLEICH gestaltet (keine Bevorzugung von „Akzeptieren“) */
+.button {
+  padding: 0.8rem 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+.button:hover {
+  background: rgb(var(--color-accent-rgb) / 0.18);
+  border-color: rgb(var(--color-accent-rgb) / 0.6);
+}
+
+.textButton {
+  justify-self: start;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.textButton:hover {
+  color: var(--color-text);
+}
+
+.categories {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.category {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: rgb(255 255 255 / 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.categoryLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.categoryText {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.alwaysOn {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  padding-top: 2px;
+}
+
+.switch {
+  flex: none;
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  transition: background var(--duration-base) var(--ease-out);
+}
+
+.switchThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    background var(--duration-base);
+}
+
+.switch[aria-checked="true"] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.switch[aria-checked="true"] .switchThumb {
+  transform: translateX(18px);
+  background: var(--color-on-accent);
+}
+
+@media (max-width: 560px) {
+  .banner {
+    right: var(--space-2);
+    bottom: max(var(--space-2), env(safe-area-inset-bottom));
+    width: calc(100vw - 2 * var(--space-2));
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+  .text {
+    font-size: var(--text-xs);
+  }
+  .button {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,12 @@
+.main {
+  padding-bottom: var(--space-9);
+}
+
+/* Endet die Seite mit einer Sektion, reicht deren Innenabstand – kein doppelter Leerraum */
+.main > section:last-child {
+  padding-bottom: 0;
+}
+
+.main:focus {
+  outline: none;
+}

@@ -1,0 +1,4 @@
+/* Globale Styles – Reihenfolge ist wichtig. Komponenten nutzen CSS Modules. */
+@import "./fonts.css";
+@import "./tokens.css";
+@import "./base.css";

@@ -1,0 +1,30 @@
+.section {
+  padding-block: var(--section-y);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: clamp(var(--space-6), 4vw, var(--space-8));
+}
+
+.title {
+  font-size: var(--text-3xl);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  max-width: 16ch;
+}
+
+.actions {
+  flex: none;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(var(--space-6), 4vw, var(--space-8));
+}

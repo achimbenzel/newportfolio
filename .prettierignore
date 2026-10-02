@@ -1,0 +1,7 @@
+node_modules
+package-lock.json
+web/build
+web/.react-router
+web/public
+studio/dist
+studio/.sanity

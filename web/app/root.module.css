@@ -1,0 +1,42 @@
+.fallback {
+  min-height: 100svh;
+  background: var(--color-bg);
+}
+
+.page {
+  display: grid;
+  place-content: center;
+  justify-items: start;
+  gap: var(--space-4);
+  min-height: 100svh;
+  padding: var(--gutter);
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-mono);
+  color: var(--color-accent-text);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  text-transform: uppercase;
+}
+
+.text {
+  max-width: 48ch;
+  color: var(--color-text-muted);
+}
+
+.links {
+  display: flex;
+  gap: var(--space-5);
+  margin-top: var(--space-3);
+}
+
+.links a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--color-accent-text);
+}

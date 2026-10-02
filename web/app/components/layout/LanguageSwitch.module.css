@@ -1,0 +1,41 @@
+.switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  background: rgb(255 255 255 / 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+.indicator {
+  position: absolute;
+  inset: 3px auto 3px 3px;
+  width: calc(50% - 3px);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.1);
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.switch[data-active="en"] .indicator {
+  transform: translateX(100%);
+}
+
+.option {
+  position: relative;
+  min-width: 2.4rem;
+  padding: 0.45rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-mono);
+  text-align: center;
+  color: var(--color-text-subtle);
+  border-radius: var(--radius-pill);
+  transition: color var(--duration-base);
+}
+
+.option:hover,
+.option[aria-current="true"] {
+  color: var(--color-text);
+}

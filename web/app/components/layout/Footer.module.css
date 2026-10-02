@@ -1,0 +1,120 @@
+.footer {
+  padding-top: var(--section-y);
+  border-top: 1px solid var(--color-border);
+  background:
+    radial-gradient(60% 120% at 50% 0%, rgb(var(--color-accent-rgb) / 0.12), transparent 70%),
+    var(--color-bg-sunken);
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ctaTitle {
+  max-width: 14ch;
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.mail {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 5px;
+  transition:
+    color var(--duration-fast),
+    text-decoration-color var(--duration-fast);
+}
+
+.mail:hover {
+  color: var(--color-text);
+  text-decoration-color: var(--color-accent-text);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-7);
+  padding-block: var(--space-8);
+}
+
+.brand {
+  align-self: start;
+  justify-self: start;
+  color: var(--color-wordmark);
+}
+
+.logo {
+  height: 26px;
+  width: auto;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.colTitle {
+  margin-bottom: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.list a,
+.linkButton {
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  transition: color var(--duration-fast);
+}
+
+.list a:hover,
+.linkButton:hover {
+  color: var(--color-text);
+}
+
+.bottom {
+  padding-block: var(--space-5) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .columns {
+    grid-template-columns: 1fr 1fr;
+  }
+}

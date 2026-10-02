@@ -1,0 +1,28 @@
+{
+  "name": "achimbenzel-portfolio",
+  "private": true,
+  "description": "Portfolio-Website von Achim Benzel – Monorepo (Website + Sanity Studio)",
+  "workspaces": [
+    "web",
+    "studio"
+  ],
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "preview": "npm run preview -w web",
+    "studio": "npm run dev -w studio",
+    "studio:build": "npm run build -w studio",
+    "studio:deploy": "npm run deploy -w studio",
+    "typecheck": "npm run typecheck -w web && npm run typecheck -w studio",
+    "lint": "npm run lint -w web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run build"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9"
+  }
+}
