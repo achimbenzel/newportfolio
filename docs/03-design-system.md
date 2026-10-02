@@ -90,9 +90,14 @@ Transparente Akzentflächen: `rgb(var(--color-accent-rgb) / 0.16)`.
   Übergang in `--color-bg`. Quelle `assets/photos/backgrounds/japan.jpg` → `npm run photos` →
   `web/public/images/hero/japan-1280|2560|3840.webp` (Liste `HERO_IMAGES` in
   `web/scripts/photos.mjs`), per `links()` in `routes/home.tsx` vorgeladen.
-- **Chatfenster** im hellen Glas-Look: `--glass-light` (Weiß 78 %, Blur 28px), Text `--ink`
-  (17 : 1), Sekundärtext `--ink-muted`/`--ink-subtle`, Akzent Petrol `--color-accent`,
-  Senden-Button schwarz. Ohne `backdrop-filter`-Unterstützung fast deckend (`--glass-light-strong`).
+- **Chatfenster:** fast deckende weiße Fläche `--glass-light` (Weiß 95 %) mit breitem,
+  durchscheinendem Glas-Rahmen wie die Rahmen auf github.com: `--glass-frame` (Weiß 26 %, Blur 24px).
+  Der Rahmen ist 10px breit, mobil 6px. Außen liegt eine feine helle Kante (`--glass-frame-edge`).
+  Bei Fokus wird beides etwas heller (`--glass-light-strong`, `--glass-frame-strong`).
+  Text `--ink` (17 : 1), Sekundärtext `--ink-muted`/`--ink-subtle`, Akzent Petrol
+  `--color-accent`, Senden-Button schwarz. „Neuer Chat“/„Schließen“ als Pillen mit schmalem
+  Rahmen (3px). Ohne `backdrop-filter`-Unterstützung ist die Fläche fast deckend
+  (`--glass-light-strong`).
 - Begrüßung über dem Fenster: weiß mit weichem Schatten (steht auf dem Foto).
 - Die Foto-Vergrößerung (Lightbox) bleibt dunkel.
 
