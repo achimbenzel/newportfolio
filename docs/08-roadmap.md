@@ -12,12 +12,16 @@ Stand: Grundstruktur + optischer Prototyp. Die folgenden Punkte sind bewusst noc
 - [ ] **Kontaktformular**: Formular + Versand (eigener kleiner Endpoint oder deutscher Mail-Dienst),
       Spam-Schutz ohne Drittanbieter-Tracking, Datenschutzhinweis
 - [ ] **Ask-Widget-Inhalte**: finale Informationen in `web/app/features/ask/knowledge.ts`
-      (optional später nach Sanity verschieben)
+      (Projekte, Leistungsseiten und Social-Profile kommen schon automatisch aus dem Content-Layer)
+- [ ] Ask-Widget: Wissenslücken schließen, die beim Testen auffielen – z. B. „Machst du Websites/
+      Webdesign?“, „Machst du Social-Media-Content/Fotografie?“, „Wo wohnst du?“ (aktuell ehrliche
+      „Weiß ich nicht → E-Mail“-Antwort)
 
 ## Technik
 
 - [ ] **Automatischer Rebuild**: Sanity-Webhook → Build (z. B. GitHub Actions / Server-Skript) → Deploy
-- [ ] `siteSettings` aus Sanity anbinden (E-Mail, Social-Links, Standard-Vorschaubild)
+- [ ] `siteSettings` aus Sanity anbinden (E-Mail, Social-Links, Standard-Vorschaubild) – Social-Links
+      dann auch in `getAskContent()` statt aus `config/site.ts`
 - [ ] Social-/OG-Bild (1200 × 630) gestalten und einbinden (`site.defaultOgImage`)
 - [ ] App-Icons als PNG (180 px Apple-Touch, 192/512 px) + `site.webmanifest`
 - [ ] Projekttexte als Rich Text (Portable Text) statt Plain Text, falls Formatierung gebraucht wird

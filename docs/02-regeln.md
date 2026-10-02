@@ -97,7 +97,9 @@ Details, Checklisten und Tests: [11-barrierefreiheit.md](11-barrierefreiheit.md)
 ## I. Qualität & Git
 
 1. Vor jedem Commit: `npm run check` (Format, Lint, Typen, Tests, Build) muss grün sein.
-2. Neue/geänderte Inhalte im Ask-Widget → passende Testfragen in `knowledge.test.ts` ergänzen.
+2. **Neues Wissen auf der Website → auch ins Ask-Widget** (DE + EN): CMS-Inhalte automatisch über
+   `content/ask.server.ts` → `features/ask/content.ts`, feste Fakten als Thema mit Beispielfragen in
+   `knowledge.ts`. Anleitung: [09-ask-widget.md](09-ask-widget.md#wissen-wächst-automatisch-mit-der-website).
 3. TypeScript ist `strict` – kein `any`, kein `// @ts-ignore` ohne Begründung.
 4. Commits klein und beschreibend (Was + Warum).
 5. `.env`-Dateien **niemals** committen – nur `.env.example` pflegen.

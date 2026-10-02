@@ -1,12 +1,12 @@
 import { Hero } from "~/components/sections/Hero";
-import { getAskProjects } from "~/content/ask.server";
+import { getAskContent } from "~/content/ask.server";
 import { localeOr } from "~/lib/route";
 import { pageMeta, personJsonLd, websiteJsonLd } from "~/lib/seo";
 import type { Route } from "./+types/home";
 
-/** Projektwissen für den Chat – beim Build aus Sanity/Platzhaltern erzeugt. */
+/** Wissen für den Chat (Projekte, Leistungen) – beim Build aus Sanity/Platzhaltern erzeugt. */
 export async function loader() {
-  return { askProjects: await getAskProjects() };
+  return { askContent: await getAskContent() };
 }
 
 export function meta({ params }: Route.MetaArgs) {
@@ -16,5 +16,5 @@ export function meta({ params }: Route.MetaArgs) {
 
 /** Startseite – vorerst bewusst nur das „Frag Achim“-Chatfenster (Header & Footer kommen vom Layout). */
 export default function Home({ loaderData }: Route.ComponentProps) {
-  return <Hero projects={loaderData.askProjects} />;
+  return <Hero askContent={loaderData.askContent} />;
 }

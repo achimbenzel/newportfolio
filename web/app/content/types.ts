@@ -48,6 +48,18 @@ export type AskProject = {
   keywords: string[];
 } & Record<"de" | "en", { title: string; category: string; industry?: string; summary: string }>;
 
+/** Leistungswissen für den Chat – Einleitung + Ablauf-Schritte der Leistungsseiten. */
+export type AskService = {
+  slug: ServiceSlug;
+} & Record<"de" | "en", { title: string; intro: string; steps: string[] }>;
+
+/** Alles, was der Chat aus dem Content-Layer bekommt (wächst mit der Website mit). */
+export type AskContent = {
+  projects: AskProject[];
+  services: AskService[];
+  socials: { label: string; url: string }[];
+};
+
 export type Service = {
   slug: ServiceSlug;
   title: string;

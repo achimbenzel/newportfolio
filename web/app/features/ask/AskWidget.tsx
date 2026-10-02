@@ -9,21 +9,23 @@ import {
 } from "react";
 import { Link } from "react-router";
 import { LogoMark3D } from "~/components/brand/LogoMark3D";
-import type { AskProject } from "~/content/types";
+import type { AskContent } from "~/content/types";
 import { Icon } from "~/components/ui/Icon";
 import { useLocale, useT } from "~/i18n";
 import { askConfig } from "./config";
 import { getTopic, type RichToken } from "./engine";
 import { defaultChips } from "./knowledge";
 import { chatStore, type ChatMessage } from "./store";
+import { TimeGreeting } from "./TimeGreeting";
 import styles from "./AskWidget.module.css";
 
 /**
  * „Frag Achim“ – Chatfenster im Hero (Look: großes Eingabefeld mit Neon-Glow).
- * Verlauf erscheint im selben Fenster ÜBER dem Eingabefeld, Vorschläge darunter.
- * Antwortet auf Deutsch und Englisch (Sprache der Frage), komplett lokal.
+ * Darüber eine Begrüßung je nach Tageszeit, der Verlauf erscheint im selben Fenster ÜBER dem
+ * Eingabefeld, Vorschläge darunter. Antwortet auf Deutsch und Englisch (Sprache der Frage),
+ * komplett lokal. `content`: Wissen aus dem Content-Layer (Projekte, Leistungen).
  */
-export function AskWidget({ projects }: { projects?: AskProject[] }) {
+export function AskWidget({ content }: { content?: AskContent }) {
   const t = useT();
   const locale = useLocale();
   const chat = useSyncExternalStore(
@@ -41,7 +43,7 @@ export function AskWidget({ projects }: { projects?: AskProject[] }) {
   const hasHistory = chat.messages.length > 0;
   const chipLang = chat.chips?.lang ?? locale;
   const chipIds = (chat.chips?.ids ?? defaultChips).filter(
-    (id) => getTopic(id, projects)?.[chipLang].label,
+    (id) => getTopic(id, content)?.[chipLang].label,
   );
   const canSend = !chat.busy && question.trim().length > 0;
 
@@ -60,7 +62,7 @@ export function AskWidget({ projects }: { projects?: AskProject[] }) {
 
   const send = () => {
     if (!canSend) return;
-    void chatStore.ask(question, { pageLocale: locale, projects });
+    void chatStore.ask(question, { pageLocale: locale, content });
     setQuestion("");
   };
 
@@ -78,14 +80,14 @@ export function AskWidget({ projects }: { projects?: AskProject[] }) {
   };
 
   const askTopic = (id: string) => {
-    const topic = getTopic(id, projects);
+    const topic = getTopic(id, content);
     if (!topic || chat.busy) return;
     focusChipsNext.current = true;
     void chatStore.ask(topic[chipLang].q ?? topic[chipLang].label ?? id, {
       pageLocale: locale,
       topicId: id,
       lang: chipLang,
-      projects,
+      content,
     });
   };
 
@@ -99,6 +101,8 @@ export function AskWidget({ projects }: { projects?: AskProject[] }) {
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Escape-Taste schließt den Verlauf
     <div className={styles.widget} data-open={chat.open || undefined} onKeyDown={onKeyDown}>
+      <TimeGreeting hidden={hasHistory} />
+
       {/* Aktionen über dem Fenster – nur sichtbar, wenn es einen Verlauf gibt */}
       <div className={styles.toolbar} data-visible={hasHistory || undefined} inert={!hasHistory}>
         <button
@@ -187,7 +191,7 @@ export function AskWidget({ projects }: { projects?: AskProject[] }) {
             onClick={() => askTopic(id)}
             disabled={chat.busy}
           >
-            {getTopic(id, projects)?.[chipLang].label}
+            {getTopic(id, content)?.[chipLang].label}
           </button>
         ))}
       </div>

@@ -3,10 +3,17 @@
  * Bleibt bei Navigation innerhalb der Seite erhalten, ist nach Reload weg.
  * → keine Speicherung auf dem Gerät, kein Consent nötig.
  */
-import type { AskProject } from "~/content/types";
+import type { AskContent } from "~/content/types";
 import type { Locale } from "~/i18n/config";
 import { askConfig } from "./config";
-import { getAnswer, detectLanguage, tokenize, type HistoryEntry, type RichToken } from "./engine";
+import {
+  detectLanguage,
+  getAnswer,
+  tokenize,
+  type AskContext,
+  type HistoryEntry,
+  type RichToken,
+} from "./engine";
 import { askTexts } from "./knowledge";
 
 export type ChatMessage = {
@@ -24,9 +31,17 @@ export type ChatState = {
   messages: ChatMessage[];
   /** null = Standard-Vorschläge in Seitensprache */
   chips: { ids: string[]; lang: Locale } | null;
+  /** Gesprächsgedächtnis (zuletzt besprochenes Fachgebiet/Aspekt) */
+  context: AskContext;
 };
 
-const initialState: ChatState = { open: false, busy: false, messages: [], chips: null };
+const initialState: ChatState = {
+  open: false,
+  busy: false,
+  messages: [],
+  chips: null,
+  context: {},
+};
 
 let state = initialState;
 let nextId = 1;
@@ -83,20 +98,25 @@ export const chatStore = {
     if (state.open !== open) setState({ open });
   },
 
+  /** Neuer Chat: Verlauf, Vorschläge und Gedächtnis leeren, Verlauf zuklappen */
   reset() {
     if (state.busy) return;
-    setState({ messages: [], chips: null });
+    setState({ open: false, messages: [], chips: null, context: {} });
   },
 
   async ask(
     question: string,
-    options: { pageLocale: Locale; topicId?: string; lang?: Locale; projects?: AskProject[] },
+    options: { pageLocale: Locale; topicId?: string; lang?: Locale; content?: AskContent },
   ) {
     const q = question.trim().slice(0, askConfig.maxQuestionLength);
     if (!q || state.busy) return;
 
     const messages = [...state.messages];
-    if (messages.length === 0) messages.push(message("bot", askTexts[options.pageLocale].greeting));
+    if (messages.length === 0) {
+      const greeting = askTexts[options.pageLocale].greeting;
+      const variants = Array.isArray(greeting) ? greeting : [greeting];
+      messages.push(message("bot", variants[Math.floor(Math.random() * variants.length)] ?? ""));
+    }
     messages.push(message("user", q));
     const placeholder = message("bot", "", true);
     messages.push(placeholder);
@@ -110,7 +130,8 @@ export const chatStore = {
     const answer = await getAnswer(history, q, {
       lang,
       topicId: options.topicId,
-      projects: options.projects,
+      content: options.content,
+      context: state.context,
     });
     const tokens = tokenize(answer.text);
     const animate = !prefersReducedMotion();
@@ -122,6 +143,7 @@ export const chatStore = {
           : m,
       ),
       chips: { ids: answer.followUps, lang: answer.lang },
+      context: answer.context,
       busy: animate,
     });
     if (animate) startTyping(placeholder.id, tokens.length);

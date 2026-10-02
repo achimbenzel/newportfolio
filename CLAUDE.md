@@ -14,5 +14,7 @@ Portfolio-Website von Achim Benzel. Monorepo: `web/` (React Router 8 + Vite, vor
 - Datenschutz: keine Requests an Drittanbieter ohne Consent (Fonts/Bilder lokal, Embeds nur via `<ConsentGate>`).
 - Keine fremden Code-Schnipsel/Assets ohne passende Lizenz; neue npm-Pakete in `docs/07-lizenzen.md` eintragen.
 - Code Englisch, Kommentare & Doku Deutsch.
-- Ask-Widget: Inhalte in `web/app/features/ask/knowledge.ts`, Testfragen in `knowledge.test.ts` (siehe `docs/09-ask-widget.md`).
+- Ask-Widget „Frag Achim“: **Neues Wissen auf der Website → auch in den Chat** (DE + EN), siehe Skill
+  `frag-achim-wissen` und `docs/09-ask-widget.md`. Feste Fakten in `web/app/features/ask/knowledge.ts`
+  (mit Beispielfragen), CMS-Inhalte automatisch über `content/ask.server.ts` → `features/ask/content.ts`.
 - Vor dem Commit: `npm run check` (Format, Lint, Typen, Tests, Build).

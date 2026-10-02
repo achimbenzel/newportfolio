@@ -61,6 +61,8 @@ export const project = defineType({
     defineField({
       name: "category",
       title: "Kategorie",
+      description:
+        "z. B. „Brand Identity“, „Logo Design“, „Motion Design“, „Cover Art“ – ordnet das Projekt im Chat „Frag Achim“ einem Fachgebiet zu.",
       type: "localeString",
       group: "meta",
       validation: (rule) => rule.required(),

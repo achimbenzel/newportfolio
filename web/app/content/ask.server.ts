@@ -1,13 +1,19 @@
 /**
- * Projektwissen für den Chat „Frag Achim“.
- * Wird beim Build aus denselben Daten erzeugt wie die Projektseiten (Sanity bzw. Platzhalter)
- * – neue Projekte kennt der Chat also automatisch nach dem nächsten Build.
+ * Wissen für den Chat „Frag Achim“ aus dem Content-Layer.
+ * Wird beim Build aus denselben Daten erzeugt wie die Seiten selbst (Sanity bzw. Platzhalter)
+ * – was auf der Website steht, kennt der Chat also automatisch nach dem nächsten Build.
+ *
+ * Neue Inhaltsart, die der Chat kennen soll? → hier ergänzen (Typ in content/types.ts),
+ * Verarbeitung in features/ask/content.ts. Anleitung: docs/09-ask-widget.md
  */
+import { serviceSlugs } from "~/config/services";
+import { site } from "~/config/site";
 import type { Locale } from "~/i18n/config";
 import { isSanityConfigured, sanityFetch } from "~/lib/sanity/client.server";
 import { askProjectsQuery } from "~/lib/sanity/queries";
 import { fallbackProjects } from "./fallback/projects";
-import type { AskProject } from "./types";
+import { getService } from "./services.server";
+import type { AskContent, AskProject, AskService, Service } from "./types";
 
 type LocaleValue = Partial<Record<Locale, string>> | null | undefined;
 
@@ -58,4 +64,25 @@ function toAskProject(raw: RawAskProject): AskProject {
 export async function getAskProjects(): Promise<AskProject[]> {
   if (!isSanityConfigured) return fallbackProjects.map(toAskProject);
   return ((await sanityFetch<RawAskProject[]>(askProjectsQuery)) ?? []).map(toAskProject);
+}
+
+/** Leistungsseiten: Einleitung (gekürzt) + Titel der Ablauf-Schritte, je Sprache. */
+export async function getAskServices(): Promise<AskService[]> {
+  const entry = (service: Service) => ({
+    title: service.title,
+    intro: summarize(service.intro, 3, 420),
+    steps: service.process.map((step) => step.title).filter(Boolean),
+  });
+  return Promise.all(
+    serviceSlugs.map(async (slug) => {
+      const [de, en] = await Promise.all([getService("de", slug), getService("en", slug)]);
+      return { slug, de: entry(de), en: entry(en) };
+    }),
+  );
+}
+
+export async function getAskContent(): Promise<AskContent> {
+  const [projects, services] = await Promise.all([getAskProjects(), getAskServices()]);
+  // Social-Profile: vorerst aus config/site.ts (später aus den Sanity-Einstellungen)
+  return { projects, services, socials: [...site.socials] };
 }

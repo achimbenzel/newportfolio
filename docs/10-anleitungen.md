@@ -34,7 +34,10 @@
    ```
 5. **Texte** in `i18n/de.ts` **und** `i18n/en.ts` (z. B. `nav.fonts`).
 6. Ggf. Link in Header/Footer ergänzen (`paths.fonts(locale)`).
-7. `npm run check`.
+7. **Wissen für den Chat?** Enthält die Seite Infos, nach denen Besucher fragen könnten, muss
+   „Frag Achim“ sie auch kennen (DE + EN) – siehe
+   [09-ask-widget.md → Wissen wächst automatisch](09-ask-widget.md#wissen-wächst-automatisch-mit-der-website).
+8. `npm run check`.
 
 Braucht die Seite Inhalte aus Sanity → zusätzlich `loader` + Funktion in `content/*.server.ts`.
 
@@ -62,6 +65,8 @@ In `components/ui/Icon.tsx` einen Eintrag im `icons`-Objekt ergänzen (24er-Rast
 3. Typ: `ProjectBlock` in `web/app/content/types.ts`.
 4. Mapping: `toBlock()` in `web/app/content/projects.server.ts`.
 5. Darstellung: `components/project/ProjectBlocks.tsx` (+ CSS).
+6. Enthält der Block Wissen für den Chat (z. B. Zitat eines Kunden)? → `content/ask.server.ts` +
+   `features/ask/content.ts` (siehe [09-ask-widget.md](09-ask-widget.md)).
 
 ## Neue Consent-Kategorie
 

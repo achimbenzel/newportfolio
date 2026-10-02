@@ -1,5 +1,5 @@
 import { Container } from "~/components/ui/Container";
-import type { AskProject } from "~/content/types";
+import type { AskContent } from "~/content/types";
 import { AskWidget } from "~/features/ask";
 import { useT } from "~/i18n";
 import styles from "./Hero.module.css";
@@ -8,8 +8,8 @@ import styles from "./Hero.module.css";
  * Startseiten-Hero: bewusst reduziert – nur das „Frag Achim“-Chatfenster
  * auf einfarbigem Hintergrund. Die H1 ist unsichtbar (Screenreader & SEO).
  */
-/** `projects`: Projektwissen für den Chat (kommt vom Loader der Startseite). */
-export function Hero({ projects }: { projects?: AskProject[] }) {
+/** `askContent`: Wissen für den Chat (kommt vom Loader der Startseite). */
+export function Hero({ askContent }: { askContent?: AskContent }) {
   const t = useT();
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
@@ -17,7 +17,7 @@ export function Hero({ projects }: { projects?: AskProject[] }) {
         {t.hero.title}
       </h1>
       <Container className={styles.inner}>
-        <AskWidget projects={projects} />
+        <AskWidget content={askContent} />
       </Container>
     </section>
   );
