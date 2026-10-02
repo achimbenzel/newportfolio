@@ -8,7 +8,8 @@ Ablauf, Preisen, Werdegang und Kontakt – auf **Deutsch und Englisch**.
 - Großes, dunkles Eingabefenster mit Neon-Glow (`--color-neon`), unten links „Achim · Assistent“
   mit Bildmarke, unten rechts der runde Senden-Button. `Enter` sendet, `Shift+Enter` = neue Zeile.
 - Sobald gefragt wird, klappt der Verlauf **im selben Fenster über dem Eingabefeld** auf.
-  Achims Avatar ist die Bildmarke (`LogoMark3D`).
+- Chat-Bubbles: Achims Antworten **links** (dunkle Bubble, Avatar = Bildmarke `LogoMark3D`),
+  die Fragen der Besucher **rechts** (Petrol-Bubble).
 - Darunter Vorschläge (passen sich nach jeder Antwort an), darüber „Neuer Chat“ / „Schließen“.
 
 ## Wie es funktioniert

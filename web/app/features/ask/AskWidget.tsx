@@ -133,7 +133,6 @@ export function AskWidget() {
                 <Message key={m.id} message={m} />
               ))}
             </div>
-            <p className={styles.disclaimer}>{t.ask.disclaimer}</p>
           </div>
         </div>
 
@@ -195,15 +194,9 @@ function Message({ message }: { message: ChatMessage }) {
   const typing = message.visible < message.tokens.length;
   return (
     <div className={styles.message} data-from={message.from}>
-      {isBot ? (
-        <LogoMark3D depth={6} className={styles.avatarLogo} />
-      ) : (
-        <span className={styles.avatar} aria-hidden="true">
-          {t.ask.youAvatar}
-        </span>
-      )}
-      <div>
-        <p className={styles.who}>{isBot ? t.ask.bot : t.ask.you}</p>
+      {isBot && <LogoMark3D depth={6} className={styles.avatarLogo} />}
+      <div className={styles.bubble}>
+        <span className="sr-only">{isBot ? t.ask.bot : t.ask.you}: </span>
         {message.pending ? (
           <p className={styles.thinking}>
             <span className="sr-only">{t.ask.thinking}</span>

@@ -46,11 +46,9 @@ export const de = {
     show: "Verlauf anzeigen",
     assistant: "Assistent",
     you: "Du",
-    youAvatar: "D",
     bot: "Achim",
     suggestions: "Vorschläge",
     thinking: "Achim tippt …",
-    disclaimer: "Automatische Antworten auf Basis der Website-Inhalte.",
   },
   home: {
     workEyebrow: "Auswahl",

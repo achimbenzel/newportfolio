@@ -43,11 +43,9 @@ export const en: Dictionary = {
     show: "Show chat",
     assistant: "Assistant",
     you: "You",
-    youAvatar: "Y",
     bot: "Achim",
     suggestions: "Suggestions",
     thinking: "Achim is typing …",
-    disclaimer: "Automatic answers based on the content of this website.",
   },
   home: {
     workEyebrow: "Selection",
