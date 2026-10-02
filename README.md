@@ -24,6 +24,17 @@ npm run check        # Format, Lint, Typen, Tests, Build – vor jedem Commit
 
 Ohne Sanity-Zugangsdaten läuft die Website mit Platzhalter-Inhalten aus `web/app/content/fallback`.
 
+### Fehlerbehebung
+
+**`npm error No workspaces found: --workspace=web`** – Der Projektordner liegt in einem anderen
+npm-Projekt: Ein übergeordneter Ordner enthält eine eigene `package.json`, die den Projektordner als
+Workspace einträgt. npm sucht `web/` dann am falschen Ort. Prüfen mit `npm prefix` im Projektordner:
+Die Ausgabe muss genau dieser Ordner sein. Falls nicht, das Projekt in einen eigenen Ordner klonen
+(z. B. `D:\projekte\newportfolio`). Alternativ die übrig gebliebene `package.json`,
+`package-lock.json` und `node_modules` im übergeordneten Ordner löschen. Danach `npm install` und
+`npm run dev` im Projektordner ausführen. Das ist der Ordner, in dem `package.json`, `web/` und
+`studio/` liegen.
+
 ## Struktur
 
 ```
