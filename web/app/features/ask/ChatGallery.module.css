@@ -24,7 +24,7 @@
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .thumb img {
@@ -41,7 +41,7 @@
 }
 
 .thumb:focus-visible {
-  outline: 2px solid var(--color-accent-text);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 

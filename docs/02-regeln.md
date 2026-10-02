@@ -38,7 +38,8 @@ Code (Variablen, Typen) ist **Englisch**, Kommentare und Doku sind **Deutsch**.
    Keine Hex-Werte in Komponenten-CSS. Ausnahmen (z. B. Logo-Verläufe) im Kommentar begründen.
 2. **CSS Modules für Komponenten**, globale Styles nur in `styles/` (Reset, Schriften, Tokens).
 3. **Keine Inline-Styles** – außer CSS-Variablen für Werte pro Element (z. B. `--i` für Staffelung).
-4. **Nur Dark Mode.** Kein Theme-Switch, keine `[data-theme]`-Varianten.
+4. **Nur Dark Mode.** Kein Theme-Switch, keine `[data-theme]`-Varianten. Erlaubt sind einzelne
+   **helle Glasflächen auf Fotos** (z. B. das Chatfenster im Hero) – mit den `--glass-light`/`--ink`-Tokens.
 5. **Mobile zuerst mitdenken:** jede Komponente bei 360 px, 768 px, 1440 px prüfen.
 6. **Animationen:** CSS bevorzugen, Kurven `--ease-out` / `--ease-in-out` verwenden,
    `prefers-reduced-motion` wird global respektiert (nicht abschalten).

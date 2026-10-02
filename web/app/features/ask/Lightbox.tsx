@@ -29,10 +29,12 @@ export function Lightbox({
   const count = images.length;
   const go = (step: number) => onIndex((index + step + count) % count);
 
+  // Öffnen beim Einblenden. Kein close() beim Aufräumen: React führt Effekte im Dev-Modus
+  // doppelt aus – ein close() dort würde die Ansicht sofort wieder schließen. Wird die
+  // Komponente entfernt, verschwindet das <dialog> ohnehin mit.
   useEffect(() => {
     const dialog = dialogRef.current;
     if (dialog && !dialog.open) dialog.showModal();
-    return () => dialog?.close();
   }, []);
 
   if (!image) return null;
@@ -58,7 +60,8 @@ export function Lightbox({
       ref={dialogRef}
       className={styles.dialog}
       aria-label={t.ask.imageDialog}
-      onClose={onClose}
+      // nur reagieren, wenn der Dialog wirklich zu ist (nicht bei einem Close/Open-Paar)
+      onClose={() => !dialogRef.current?.open && onClose()}
       onKeyDown={onKeyDown}
       onClick={(event) => event.target === event.currentTarget && dialogRef.current?.close()}
     >

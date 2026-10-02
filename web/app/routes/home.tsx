@@ -9,6 +9,24 @@ export async function loader() {
   return { askContent: await getAskContent() };
 }
 
+/** Hintergrundfoto früh laden (größtes Element beim ersten Aufruf) */
+export const links: Route.LinksFunction = () => [
+  {
+    rel: "preload",
+    as: "image",
+    href: "/images/hero/kyoto-2560.webp",
+    type: "image/webp",
+    media: "(min-width: 901px)",
+  },
+  {
+    rel: "preload",
+    as: "image",
+    href: "/images/hero/kyoto-1280.webp",
+    type: "image/webp",
+    media: "(max-width: 900px)",
+  },
+];
+
 export function meta({ params }: Route.MetaArgs) {
   const locale = localeOr(params.lang);
   return pageMeta({ locale, path: "/", jsonLd: [personJsonLd(locale), websiteJsonLd(locale)] });

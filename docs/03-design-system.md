@@ -83,6 +83,18 @@ Transparente Akzentflächen: `rgb(var(--color-accent-rgb) / 0.16)`.
 | LogoMark3D       | `components/brand/LogoMark3D.tsx`      | Bildmarke mit Verlauf + Tiefe (Chat-Avatar)                              |
 | Cookie-Banner    | `features/consent/CookieBanner.tsx`    | siehe [06-datenschutz.md](06-datenschutz.md)                             |
 
+## Startseite: Foto + helles Chatfenster
+
+- **Hintergrund:** eigenes Foto (Kyoto 2024) vollflächig hinter Hero und Header
+  (`components/sections/Hero.module.css`), oben leicht abgedunkelt, unten weicher Übergang in
+  `--color-bg`. Dateien: `web/public/images/hero/kyoto-1280|2560.webp`, erzeugt mit
+  `npm run photos` (Liste `HERO_IMAGES` in `web/scripts/photos.mjs`), per `links()` vorgeladen.
+- **Chatfenster** im hellen Glas-Look: `--glass-light` (Weiß 78 %, Blur 28px), Text `--ink`
+  (17 : 1), Sekundärtext `--ink-muted`/`--ink-subtle`, Akzent Petrol `--color-accent`,
+  Senden-Button schwarz. Ohne `backdrop-filter`-Unterstützung fast deckend (`--glass-light-strong`).
+- Begrüßung über dem Fenster: weiß mit weichem Schatten (steht auf dem Foto).
+- Die Foto-Vergrößerung (Lightbox) bleibt dunkel.
+
 ## Header-Verhalten
 
 Gestaltet wie der Header der alten Seite (achimbenzel.com): dunkle Glas-Insel (`--color-nav`,

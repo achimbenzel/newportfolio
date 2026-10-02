@@ -1,7 +1,32 @@
+/* Vollflächiges Hintergrundfoto (eigenes Foto, Kyoto 2024 – erzeugt mit `npm run photos`) */
 .hero {
+  position: relative;
+  isolation: isolate;
   display: flex;
   min-height: 100svh;
-  background: var(--color-bg);
+  background: var(--color-bg) url("/images/hero/kyoto-2560.webp") center 40% / cover no-repeat;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    background-image: url("/images/hero/kyoto-1280.webp");
+  }
+}
+
+/* oben leicht abdunkeln (Header, Begrüßung), unten weich in die dunkle Seite übergehen */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.28) 0%,
+    rgb(0 0 0 / 0.08) 30%,
+    rgb(0 0 0 / 0) 70%,
+    rgb(var(--color-bg-rgb) / 0.6) 92%,
+    var(--color-bg) 100%
+  );
 }
 
 .inner {

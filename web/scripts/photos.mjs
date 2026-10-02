@@ -9,6 +9,8 @@
  * - dreht Handyfotos automatisch richtig herum
  * - entfernt ALLE Metadaten (EXIF, GPS-Standort, Kameramodell …) – Datenschutz
  * - Alternativtexte (DE/EN) pflegt man von Hand in web/app/features/ask/galleries.ts
+ *
+ * Zusätzlich: große Hintergrundbilder (HERO_IMAGES) → web/public/images/hero/<name>-<breite>.webp
  */
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -54,6 +56,24 @@ for (const album of (await readdir(albumsDir, { withFileTypes: true })).filter((
     albums[album.name].push({ name, ...large });
     console.log(`✓ ${album.name}/${name} (${large.width}×${large.height})`);
   }
+}
+
+/** Hintergrundbilder (Startseite) – Quelle relativ zu assets/photos */
+const HERO_IMAGES = [
+  { source: "japan-2024/originals/01-kyoto-tempel.jpg", name: "kyoto", widths: [1280, 2560] },
+];
+const heroDir = join(outputDir, "hero");
+await rm(heroDir, { recursive: true, force: true });
+await mkdir(heroDir, { recursive: true });
+for (const { source, name, widths } of HERO_IMAGES) {
+  for (const width of widths) {
+    await sharp(join(albumsDir, source))
+      .rotate()
+      .resize({ width, withoutEnlargement: true })
+      .webp({ quality: 76 })
+      .toFile(join(heroDir, `${name}-${width}.webp`));
+  }
+  console.log(`✓ hero/${name} (${widths.join(", ")})`);
 }
 
 await writeFile(
